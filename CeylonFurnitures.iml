@@ -7,5 +7,21 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/gluegen-rt-natives-windows-amd64.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/gluegen-rt.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/jogl-all-natives-windows-amd64.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/jogl-all.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/sqlite-jdbc-3.49.1.0.jar!/" />
+          <root url="file://$MODULE_DIR$" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/src" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>
