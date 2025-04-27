@@ -1,5 +1,7 @@
 package ceylonfurnitures.db;
 
+import ceylonfurnitures.model.User;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -193,27 +195,7 @@ public class DatabaseManager {
         }
     }
 
-    // Inner User class (for simplicity, until we create a separate model)
-    public static class User {
-        private int id;
-        private String username;
-        private String password;
-        private String email;
-
-        public User(int id, String username, String password, String email) {
-            this.id = id;
-            this.username = username;
-            this.password = password;
-            this.email = email;
-        }
-
-        public int getId() { return id; }
-        public String getUsername() { return username; }
-        public String getPassword() { return password; }
-        public String getEmail() { return email; }
-    }
-
-    // Inner Design class (for simplicity, until we create a separate model)
+    // Temporary Design class (we'll move this to model package later)
     public static class Design {
         private int id;
         private int userId;
