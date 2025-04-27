@@ -4,6 +4,7 @@ import ceylonfurnitures.controller.FurnitureFactory;
 import ceylonfurnitures.db.DatabaseManager;
 import ceylonfurnitures.model.User;
 import ceylonfurnitures.view.DashboardPanel;
+import ceylonfurnitures.view.DesignPanel;
 import ceylonfurnitures.view.LoginPanel;
 import ceylonfurnitures.view.SignupPanel;
 
@@ -68,9 +69,17 @@ public class Main {
                 furnitureFactory,
                 Main::showLoginPanel,
                 () -> System.out.println("Show saved designs clicked (to be implemented in Day 7)"),
-                () -> System.out.println("Start design clicked (to be implemented in Day 5)")
+                () -> showDesignPanel(user)
         );
         frame.add(dashboardPanel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private static void showDesignPanel(User user) {
+        frame.getContentPane().removeAll();
+        DesignPanel designPanel = new DesignPanel(user, furnitureFactory, () -> showDashboardPanel(user));
+        frame.add(designPanel);
         frame.revalidate();
         frame.repaint();
     }
