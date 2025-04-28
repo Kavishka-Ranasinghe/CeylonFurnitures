@@ -13,12 +13,10 @@ public class Bed2D implements Furniture2D {
     public void draw(Graphics2D g2d, Furniture furniture) {
         int x = furniture.getX();
         int y = furniture.getY();
-        double scale = furniture.getScale();
+        int width = furniture.getWidth();
+        int height = furniture.getHeight();
         Color color = furniture.getColor();
         float shading = furniture.getShading();
-
-        int scaledWidth = (int) (BASE_WIDTH * scale);
-        int scaledHeight = (int) (BASE_HEIGHT * scale);
 
         // Adjust color for shading
         float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
@@ -27,32 +25,32 @@ public class Bed2D implements Furniture2D {
 
         // Draw the bed (rectangle for mattress)
         g2d.setColor(shadedColor);
-        g2d.fillRect(x, y, scaledWidth, scaledHeight);
+        g2d.fillRect(x, y, width, height);
 
         // Draw outline
         g2d.setColor(Color.BLACK);
-        g2d.drawRect(x, y, scaledWidth, scaledHeight);
+        g2d.drawRect(x, y, width, height);
 
         // Draw headboard
         g2d.setColor(shadedColor.darker());
-        g2d.fillRect(x, y - 10, scaledWidth, 10);
+        g2d.fillRect(x, y - 10, width, 10);
 
-        // Draw pillows
+        // Draw pillows (scaled based on width)
         g2d.setColor(Color.WHITE);
-        g2d.fill(new Rectangle2D.Double(x + 10, y + 10, scaledWidth / 4, 20));
-        g2d.fill(new Rectangle2D.Double(x + scaledWidth / 2, y + 10, scaledWidth / 4, 20));
+        g2d.fill(new Rectangle2D.Double(x + 10, y + 10, width / 4, 20));
+        g2d.fill(new Rectangle2D.Double(x + width / 2, y + 10, width / 4, 20));
         g2d.setColor(Color.BLACK);
-        g2d.draw(new Rectangle2D.Double(x + 10, y + 10, scaledWidth / 4, 20));
-        g2d.draw(new Rectangle2D.Double(x + scaledWidth / 2, y + 10, scaledWidth / 4, 20));
+        g2d.draw(new Rectangle2D.Double(x + 10, y + 10, width / 4, 20));
+        g2d.draw(new Rectangle2D.Double(x + width / 2, y + 10, width / 4, 20));
     }
 
     @Override
-    public int getWidth(Furniture furniture) {
-        return (int) (BASE_WIDTH * furniture.getScale());
+    public int getDefaultWidth() {
+        return BASE_WIDTH;
     }
 
     @Override
-    public int getHeight(Furniture furniture) {
-        return (int) (BASE_HEIGHT * furniture.getScale());
+    public int getDefaultHeight() {
+        return BASE_HEIGHT;
     }
 }

@@ -4,12 +4,12 @@ import ceylonfurnitures.furniture.Bed2D;
 import ceylonfurnitures.furniture.Furniture2D;
 import ceylonfurnitures.model.Furniture;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.awt.Color;
-import java.awt.Graphics2D;
 
 public class FurnitureFactory {
     private List<Furniture> furnitureTypes;
@@ -39,7 +39,11 @@ public class FurnitureFactory {
     public Furniture createFurniture(String type) {
         for (Furniture furniture : furnitureTypes) {
             if (furniture.getType().equalsIgnoreCase(type)) {
-                return new Furniture(type, furniture.getDisplayName());
+                Furniture newFurniture = new Furniture(type, furniture.getDisplayName());
+                Furniture2D renderer = getFurniture2D(type);
+                newFurniture.setWidth(renderer.getDefaultWidth());
+                newFurniture.setHeight(renderer.getDefaultHeight());
+                return newFurniture;
             }
         }
         return null; // Type not found
@@ -58,12 +62,10 @@ public class FurnitureFactory {
         public void draw(Graphics2D g2d, Furniture furniture) {
             int x = furniture.getX();
             int y = furniture.getY();
-            double scale = furniture.getScale();
+            int width = furniture.getWidth();
+            int height = furniture.getHeight();
             Color color = furniture.getColor();
             float shading = furniture.getShading();
-
-            int scaledWidth = (int) (BASE_WIDTH * scale);
-            int scaledHeight = (int) (BASE_HEIGHT * scale);
 
             // Adjust color for shading
             float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
@@ -72,19 +74,19 @@ public class FurnitureFactory {
 
             // Draw a simple rectangle
             g2d.setColor(shadedColor);
-            g2d.fillRect(x, y, scaledWidth, scaledHeight);
+            g2d.fillRect(x, y, width, height);
             g2d.setColor(Color.BLACK);
-            g2d.drawRect(x, y, scaledWidth, scaledHeight);
+            g2d.drawRect(x, y, width, height);
         }
 
         @Override
-        public int getWidth(Furniture furniture) {
-            return (int) (BASE_WIDTH * furniture.getScale());
+        public int getDefaultWidth() {
+            return BASE_WIDTH;
         }
 
         @Override
-        public int getHeight(Furniture furniture) {
-            return (int) (BASE_HEIGHT * furniture.getScale());
+        public int getDefaultHeight() {
+            return BASE_HEIGHT;
         }
     }
 }

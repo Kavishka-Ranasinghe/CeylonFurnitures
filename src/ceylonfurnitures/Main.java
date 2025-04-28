@@ -9,8 +9,6 @@ import ceylonfurnitures.view.LoginPanel;
 import ceylonfurnitures.view.SignupPanel;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.function.Consumer;
 
 public class Main {
     private static JFrame frame;

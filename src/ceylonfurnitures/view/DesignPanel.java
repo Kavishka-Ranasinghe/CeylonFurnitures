@@ -94,22 +94,29 @@ public class DesignPanel extends JPanel {
         gbc.gridy = 2;
         rightPanel.add(colorButton, gbc);
 
-        JLabel scaleLabel = new JLabel("Scale:");
+        JLabel widthLabel = new JLabel("Width (px):");
         gbc.gridx = 0;
         gbc.gridy = 3;
-        rightPanel.add(scaleLabel, gbc);
+        rightPanel.add(widthLabel, gbc);
 
-        JSlider scaleSlider = new JSlider(50, 200, 100); // 0.5x to 2x
-        scaleSlider.setMajorTickSpacing(50);
-        scaleSlider.setPaintTicks(true);
-        scaleSlider.setPaintLabels(true);
+        JTextField widthField = new JTextField("0", 5);
         gbc.gridx = 0;
         gbc.gridy = 4;
-        rightPanel.add(scaleSlider, gbc);
+        rightPanel.add(widthField, gbc);
+
+        JLabel heightLabel = new JLabel("Height (px):");
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        rightPanel.add(heightLabel, gbc);
+
+        JTextField heightField = new JTextField("0", 5);
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        rightPanel.add(heightField, gbc);
 
         JLabel shadingLabel = new JLabel("Shading:");
         gbc.gridx = 0;
-        gbc.gridy = 5;
+        gbc.gridy = 7;
         rightPanel.add(shadingLabel, gbc);
 
         JSlider shadingSlider = new JSlider(0, 100, 0); // 0.0 to 1.0
@@ -117,8 +124,13 @@ public class DesignPanel extends JPanel {
         shadingSlider.setPaintTicks(true);
         shadingSlider.setPaintLabels(true);
         gbc.gridx = 0;
-        gbc.gridy = 6;
+        gbc.gridy = 8;
         rightPanel.add(shadingSlider, gbc);
+
+        JButton applyButton = new JButton("Apply Changes");
+        gbc.gridx = 0;
+        gbc.gridy = 9;
+        rightPanel.add(applyButton, gbc);
 
         add(rightPanel, BorderLayout.EAST);
 
@@ -140,10 +152,37 @@ public class DesignPanel extends JPanel {
             }
         });
 
-        scaleSlider.addChangeListener(e -> {
+        // Update width and height fields when a furniture is selected
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (selectedFurniture != null) {
+                    widthField.setText(String.valueOf(selectedFurniture.getWidth()));
+                    heightField.setText(String.valueOf(selectedFurniture.getHeight()));
+                } else {
+                    widthField.setText("0");
+                    heightField.setText("0");
+                }
+            }
+        });
+
+        applyButton.addActionListener(e -> {
             if (selectedFurniture != null) {
-                selectedFurniture.setScale(scaleSlider.getValue() / 100.0);
-                drawingPanel.repaint();
+                try {
+                    int newWidth = Integer.parseInt(widthField.getText().trim());
+                    int newHeight = Integer.parseInt(heightField.getText().trim());
+                    if (newWidth <= 0 || newHeight <= 0) {
+                        JOptionPane.showMessageDialog(this, "Width and height must be positive.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    selectedFurniture.setWidth(newWidth);
+                    selectedFurniture.setHeight(newHeight);
+                    drawingPanel.repaint();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Please enter valid numbers for width and height.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select a furniture item to customize.");
             }
         });
 
@@ -276,9 +315,8 @@ public class DesignPanel extends JPanel {
                 public void mousePressed(MouseEvent e) {
                     selectedFurniture = null;
                     for (Furniture furniture : placedFurniture) {
-                        Furniture2D renderer = furnitureFactory.getFurniture2D(furniture.getType());
-                        int width = renderer.getWidth(furniture);
-                        int height = renderer.getHeight(furniture);
+                        int width = furniture.getWidth();
+                        int height = furniture.getHeight();
                         if (e.getX() >= furniture.getX() && e.getX() <= furniture.getX() + width &&
                                 e.getY() >= furniture.getY() && e.getY() <= furniture.getY() + height) {
                             selectedFurniture = furniture;
@@ -300,9 +338,8 @@ public class DesignPanel extends JPanel {
                         int newY = selectedFurniture.getY() + dy;
 
                         // Keep furniture within room bounds (scaled down for display)
-                        Furniture2D renderer = furnitureFactory.getFurniture2D(selectedFurniture.getType());
-                        int width = renderer.getWidth(selectedFurniture);
-                        int height = renderer.getHeight(selectedFurniture);
+                        int width = selectedFurniture.getWidth();
+                        int height = selectedFurniture.getHeight();
                         int roomWidth = room.getWidth() / 10; // Scale down by 10
                         int roomDepth = room.getDepth() / 10;
 
@@ -359,8 +396,8 @@ public class DesignPanel extends JPanel {
                 // Highlight selected furniture
                 if (furniture == selectedFurniture) {
                     g2d.setColor(Color.RED);
-                    int width = renderer.getWidth(furniture);
-                    int height = renderer.getHeight(furniture);
+                    int width = furniture.getWidth();
+                    int height = furniture.getHeight();
                     g2d.drawRect(furniture.getX(), furniture.getY(), width, height);
                 }
             }

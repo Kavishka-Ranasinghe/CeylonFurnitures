@@ -7,7 +7,8 @@ public class Furniture {
     private String displayName;
     private int x; // Position in 2D view (pixels)
     private int y; // Position in 2D view (pixels)
-    private double scale; // Scaling factor (e.g., 1.0 = normal size)
+    private int width; // Width in pixels (default set by Furniture2D implementation)
+    private int height; // Height in pixels (default set by Furniture2D implementation)
     private Color color;
     private float shading; // 0.0 (no shading) to 1.0 (full shading)
 
@@ -16,7 +17,8 @@ public class Furniture {
         this.displayName = displayName;
         this.x = 0;
         this.y = 0;
-        this.scale = 1.0;
+        this.width = 0; // Will be set by FurnitureFactory based on Furniture2D
+        this.height = 0; // Will be set by FurnitureFactory based on Furniture2D
         this.color = Color.LIGHT_GRAY; // Default color
         this.shading = 0.0f; // Default no shading
     }
@@ -38,8 +40,12 @@ public class Furniture {
         return y;
     }
 
-    public double getScale() {
-        return scale;
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public Color getColor() {
@@ -59,8 +65,12 @@ public class Furniture {
         this.y = y;
     }
 
-    public void setScale(double scale) {
-        this.scale = scale;
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
     }
 
     public void setColor(Color color) {
