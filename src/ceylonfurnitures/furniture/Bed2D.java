@@ -15,6 +15,7 @@ public class Bed2D implements Furniture2D {
         int y = furniture.getY();
         int width = furniture.getWidth();
         int height = furniture.getHeight();
+        float rotation = furniture.getRotation();
         Color color = furniture.getColor();
         float shading = furniture.getShading();
 
@@ -22,6 +23,9 @@ public class Bed2D implements Furniture2D {
         float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
         float brightness = hsb[2] * (1.0f - shading);
         Color shadedColor = Color.getHSBColor(hsb[0], hsb[1], brightness);
+
+        // Rotate around the center of the bed
+        g2d.rotate(Math.toRadians(rotation), x + width / 2.0, y + height / 2.0);
 
         // Draw the bed (rectangle for mattress)
         g2d.setColor(shadedColor);
@@ -42,6 +46,9 @@ public class Bed2D implements Furniture2D {
         g2d.setColor(Color.BLACK);
         g2d.draw(new Rectangle2D.Double(x + 10, y + 10, width / 4, 20));
         g2d.draw(new Rectangle2D.Double(x + width / 2, y + 10, width / 4, 20));
+
+        // Reset rotation
+        g2d.rotate(-Math.toRadians(rotation), x + width / 2.0, y + height / 2.0);
     }
 
     @Override

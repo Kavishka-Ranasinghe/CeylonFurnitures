@@ -9,6 +9,8 @@ public class Furniture {
     private int y; // Position in 2D view (pixels)
     private int width; // Width in pixels (default set by Furniture2D implementation)
     private int height; // Height in pixels (default set by Furniture2D implementation)
+    private float depth; // Depth in OpenGL units (meters, default set by Furniture3D)
+    private float rotation; // Rotation in degrees (around Y-axis in 3D)
     private Color color;
     private float shading; // 0.0 (no shading) to 1.0 (full shading)
 
@@ -17,10 +19,12 @@ public class Furniture {
         this.displayName = displayName;
         this.x = 0;
         this.y = 0;
-        this.width = 0; // Will be set by FurnitureFactory based on Furniture2D
-        this.height = 0; // Will be set by FurnitureFactory based on Furniture2D
-        this.color = Color.LIGHT_GRAY; // Default color
-        this.shading = 0.0f; // Default no shading
+        this.width = 0;
+        this.height = 0;
+        this.depth = 0;
+        this.rotation = 0.0f;
+        this.color = Color.LIGHT_GRAY;
+        this.shading = 0.0f;
     }
 
     // Getters
@@ -48,6 +52,14 @@ public class Furniture {
         return height;
     }
 
+    public float getDepth() {
+        return depth;
+    }
+
+    public float getRotation() {
+        return rotation;
+    }
+
     public Color getColor() {
         return color;
     }
@@ -71,6 +83,14 @@ public class Furniture {
 
     public void setHeight(int height) {
         this.height = height;
+    }
+
+    public void setDepth(float depth) {
+        this.depth = depth;
+    }
+
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
     }
 
     public void setColor(Color color) {
