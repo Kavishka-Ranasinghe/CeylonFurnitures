@@ -12,11 +12,12 @@ public class Bed3D implements Furniture3D {
 
     @Override
     public void draw(GL2 gl, Furniture furniture) {
-        float x = furniture.getX() / 1000.0f; // Convert pixels to meters (scaled down from 2D view)
-        float y = furniture.getY() / 1000.0f;
-        float width = furniture.getWidth() / 1000.0f;
+        // Convert pixel coordinates to world coordinates (meters)
+        float x = (furniture.getX() * 10.0f / 1000.0f); // Adjusted scaling to match room
+        float z = (furniture.getY() * 10.0f / 1000.0f); // In 3D, y from 2D becomes z
+        float width = furniture.getWidth() * 10.0f / 1000.0f;
         float height = BASE_HEIGHT; // Fixed height for 3D
-        float depth = furniture.getHeight() / 1000.0f; // In 2D, "height" is depth in 3D
+        float depth = furniture.getHeight() * 10.0f / 1000.0f; // In 2D, "height" is depth in 3D
         float rotation = furniture.getRotation();
         Color color = furniture.getColor();
         float shading = furniture.getShading();
@@ -28,68 +29,75 @@ public class Bed3D implements Furniture3D {
         float b = rgb[2] * (1.0f - shading);
 
         gl.glPushMatrix();
-        gl.glTranslatef(x + width / 2, height / 2, y + depth / 2); // Center the bed
+        // Translate to the bed's position (adjust for room's coordinate system in DesignPanel)
+        gl.glTranslatef(x, 0, z); // Position at the bottom-left corner, not centered
         gl.glRotatef(rotation, 0, 1, 0); // Rotate around Y-axis
         gl.glScalef(width, height, depth);
 
         // Draw the bed (simple cuboid for the mattress)
         gl.glColor3f(r, g, b);
-        drawCuboid(gl, -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f);
+        drawCuboid(gl, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 
         // Draw headboard
         gl.glColor3f(r * 0.8f, g * 0.8f, b * 0.8f); // Darker shade
-        drawCuboid(gl, -0.5f, 0.5f, -0.55f, 0.5f, 1.0f, -0.5f);
+        drawCuboid(gl, 0.0f, 1.0f, -0.05f, 1.0f, 2.0f, 0.0f);
 
         gl.glPopMatrix();
     }
 
     private void drawCuboid(GL2 gl, float xMin, float yMin, float zMin, float xMax, float yMax, float zMax) {
-        // Front
+        // Front face (z = zMax)
         gl.glBegin(GL2.GL_QUADS);
+        gl.glNormal3f(0.0f, 0.0f, 1.0f); // Normal pointing forward
         gl.glVertex3f(xMin, yMin, zMax);
         gl.glVertex3f(xMax, yMin, zMax);
         gl.glVertex3f(xMax, yMax, zMax);
         gl.glVertex3f(xMin, yMax, zMax);
         gl.glEnd();
 
-        // Back
+        // Back face (z = zMin)
         gl.glBegin(GL2.GL_QUADS);
-        gl.glVertex3f(xMin, yMin, zMin);
+        gl.glNormal3f(0.0f, 0.0f, -1.0f); // Normal pointing backward
         gl.glVertex3f(xMax, yMin, zMin);
-        gl.glVertex3f(xMax, yMax, zMin);
+        gl.glVertex3f(xMin, yMin, zMin);
         gl.glVertex3f(xMin, yMax, zMin);
+        gl.glVertex3f(xMax, yMax, zMin);
         gl.glEnd();
 
-        // Top
+        // Top face (y = yMax)
         gl.glBegin(GL2.GL_QUADS);
+        gl.glNormal3f(0.0f, 1.0f, 0.0f); // Normal pointing up
         gl.glVertex3f(xMin, yMax, zMin);
         gl.glVertex3f(xMax, yMax, zMin);
         gl.glVertex3f(xMax, yMax, zMax);
         gl.glVertex3f(xMin, yMax, zMax);
         gl.glEnd();
 
-        // Bottom
+        // Bottom face (y = yMin)
         gl.glBegin(GL2.GL_QUADS);
-        gl.glVertex3f(xMin, yMin, zMin);
-        gl.glVertex3f(xMax, yMin, zMin);
-        gl.glVertex3f(xMax, yMin, zMax);
+        gl.glNormal3f(0.0f, -1.0f, 0.0f); // Normal pointing down
         gl.glVertex3f(xMin, yMin, zMax);
+        gl.glVertex3f(xMax, yMin, zMax);
+        gl.glVertex3f(xMax, yMin, zMin);
+        gl.glVertex3f(xMin, yMin, zMin);
         gl.glEnd();
 
-        // Left
+        // Left face (x = xMin)
         gl.glBegin(GL2.GL_QUADS);
+        gl.glNormal3f(-1.0f, 0.0f, 0.0f); // Normal pointing left
         gl.glVertex3f(xMin, yMin, zMin);
         gl.glVertex3f(xMin, yMin, zMax);
         gl.glVertex3f(xMin, yMax, zMax);
         gl.glVertex3f(xMin, yMax, zMin);
         gl.glEnd();
 
-        // Right
+        // Right face (x = xMax)
         gl.glBegin(GL2.GL_QUADS);
-        gl.glVertex3f(xMax, yMin, zMin);
+        gl.glNormal3f(1.0f, 0.0f, 0.0f); // Normal pointing right
         gl.glVertex3f(xMax, yMin, zMax);
-        gl.glVertex3f(xMax, yMax, zMax);
+        gl.glVertex3f(xMax, yMin, zMin);
         gl.glVertex3f(xMax, yMax, zMin);
+        gl.glVertex3f(xMax, yMax, zMax);
         gl.glEnd();
     }
 

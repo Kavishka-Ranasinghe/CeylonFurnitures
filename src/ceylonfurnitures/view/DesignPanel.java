@@ -17,6 +17,9 @@ import java.util.List;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLJPanel;
 import com.jogamp.opengl.util.FPSAnimator;
+import com.jogamp.opengl.glu.GLU;
+import java.nio.FloatBuffer;
+import java.nio.ByteBuffer;
 
 public class DesignPanel extends JPanel {
     private User user;
@@ -37,6 +40,7 @@ public class DesignPanel extends JPanel {
     private int lastX;
     private int lastY;
     private FPSAnimator animator;
+    private GLU glu = new GLU();
 
     public DesignPanel(User user, FurnitureFactory furnitureFactory, Runnable onBackToDashboard) {
         this.user = user;
@@ -121,8 +125,8 @@ public class DesignPanel extends JPanel {
                 gl.glEnable(GL2.GL_LIGHTING);
                 gl.glEnable(GL2.GL_LIGHT0);
                 float[] lightPosition = {0.0f, 5.0f, 5.0f, 1.0f};
-                float[] lightDiffuse = {0.4f, 0.4f, 0.4f, 1.0f};
-                float[] lightAmbient = {0.3f, 0.3f, 0.3f, 1.0f};
+                float[] lightDiffuse = {0.8f, 0.8f, 0.8f, 1.0f};
+                float[] lightAmbient = {0.6f, 0.6f, 0.6f, 1.0f};
                 gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
                 gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
                 gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, lightAmbient, 0);
@@ -155,6 +159,9 @@ public class DesignPanel extends JPanel {
                 float roomDepth = room.getDepth() / 1000.0f;
                 float roomHeight = room.getHeight() / 1000.0f;
 
+                // Center the room in world coordinates
+                gl.glTranslatef(-roomWidth / 2, 0, -roomDepth / 2);
+
                 // Floor
                 float[] floorColor = room.getFloorColor().getRGBColorComponents(null);
                 System.out.println("Applying floor color in 3D view - R: " + floorColor[0] + ", G: " + floorColor[1] + ", B: " + floorColor[2]);
@@ -163,10 +170,10 @@ public class DesignPanel extends JPanel {
                 gl.glColor3f(floorColor[0], floorColor[1], floorColor[2]);
                 gl.glBegin(GL2.GL_QUADS);
                 gl.glNormal3f(0.0f, 1.0f, 0.0f);
-                gl.glVertex3f(-roomWidth / 2, 0, -roomDepth / 2);
-                gl.glVertex3f(roomWidth / 2, 0, -roomDepth / 2);
-                gl.glVertex3f(roomWidth / 2, 0, roomDepth / 2);
-                gl.glVertex3f(-roomWidth / 2, 0, roomDepth / 2);
+                gl.glVertex3f(0, 0, 0);
+                gl.glVertex3f(roomWidth, 0, 0);
+                gl.glVertex3f(roomWidth, 0, roomDepth);
+                gl.glVertex3f(0, 0, roomDepth);
                 gl.glEnd();
 
                 // Walls (all four walls)
@@ -176,47 +183,120 @@ public class DesignPanel extends JPanel {
                 gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE, wallAmbientDiffuse, 0);
                 gl.glColor3f(wallColor[0], wallColor[1], wallColor[2]);
 
-                // Back wall (z = -roomDepth/2)
+                // Back wall (z = 0)
                 gl.glBegin(GL2.GL_QUADS);
                 gl.glNormal3f(0.0f, 0.0f, 1.0f);
-                gl.glVertex3f(-roomWidth / 2, 0, -roomDepth / 2);
-                gl.glVertex3f(roomWidth / 2, 0, -roomDepth / 2);
-                gl.glVertex3f(roomWidth / 2, roomHeight, -roomDepth / 2);
-                gl.glVertex3f(-roomWidth / 2, roomHeight, -roomDepth / 2);
+                gl.glVertex3f(0, 0, 0);
+                gl.glVertex3f(roomWidth, 0, 0);
+                gl.glVertex3f(roomWidth, roomHeight, 0);
+                gl.glVertex3f(0, roomHeight, 0);
                 gl.glEnd();
 
-                // Front wall (z = roomDepth/2)
+                // Front wall (z = roomDepth)
                 gl.glBegin(GL2.GL_QUADS);
                 gl.glNormal3f(0.0f, 0.0f, -1.0f);
-                gl.glVertex3f(-roomWidth / 2, 0, roomDepth / 2);
-                gl.glVertex3f(-roomWidth / 2, roomHeight, roomDepth / 2);
-                gl.glVertex3f(roomWidth / 2, roomHeight, roomDepth / 2);
-                gl.glVertex3f(roomWidth / 2, 0, roomDepth / 2);
+                gl.glVertex3f(0, 0, roomDepth);
+                gl.glVertex3f(0, roomHeight, roomDepth);
+                gl.glVertex3f(roomWidth, roomHeight, roomDepth);
+                gl.glVertex3f(roomWidth, 0, roomDepth);
                 gl.glEnd();
 
-                // Left wall (x = -roomWidth/2)
+                // Left wall (x = 0)
                 gl.glBegin(GL2.GL_QUADS);
                 gl.glNormal3f(1.0f, 0.0f, 0.0f);
-                gl.glVertex3f(-roomWidth / 2, 0, -roomDepth / 2);
-                gl.glVertex3f(-roomWidth / 2, roomHeight, -roomDepth / 2);
-                gl.glVertex3f(-roomWidth / 2, roomHeight, roomDepth / 2);
-                gl.glVertex3f(-roomWidth / 2, 0, roomDepth / 2);
+                gl.glVertex3f(0, 0, 0);
+                gl.glVertex3f(0, roomHeight, 0);
+                gl.glVertex3f(0, roomHeight, roomDepth);
+                gl.glVertex3f(0, 0, roomDepth);
                 gl.glEnd();
 
-                // Right wall (x = roomWidth/2)
+                // Right wall (x = roomWidth)
                 gl.glBegin(GL2.GL_QUADS);
                 gl.glNormal3f(-1.0f, 0.0f, 0.0f);
-                gl.glVertex3f(roomWidth / 2, 0, -roomDepth / 2);
-                gl.glVertex3f(roomWidth / 2, 0, roomDepth / 2);
-                gl.glVertex3f(roomWidth / 2, roomHeight, roomDepth / 2);
-                gl.glVertex3f(roomWidth / 2, roomHeight, -roomDepth / 2);
+                gl.glVertex3f(roomWidth, 0, 0);
+                gl.glVertex3f(roomWidth, 0, roomDepth);
+                gl.glVertex3f(roomWidth, roomHeight, roomDepth);
+                gl.glVertex3f(roomWidth, roomHeight, 0);
                 gl.glEnd();
 
                 // Draw furniture
                 for (Furniture furniture : placedFurniture) {
                     Furniture3D renderer = furnitureFactory.getFurniture3D(furniture.getType());
+                    // Set material properties for the furniture
+                    float[] furnitureColor = furniture.getColor().getRGBColorComponents(null);
+                    float[] furnitureAmbientDiffuse = {furnitureColor[0], furnitureColor[1], furnitureColor[2], 1.0f};
+                    gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE, furnitureAmbientDiffuse, 0);
                     renderer.draw(gl, furniture);
+
+                    // Highlight selected furniture with a wireframe
+                    if (furniture == selectedFurniture) {
+                        gl.glPushMatrix();
+                        float x = (furniture.getX() * 10.0f / 1000.0f);
+                        float z = (furniture.getY() * 10.0f / 1000.0f);
+                        float width = furniture.getWidth() * 10.0f / 1000.0f;
+                        float height = 0.5f; // Fixed height from Bed3D
+                        float depth = furniture.getHeight() * 10.0f / 1000.0f;
+                        float rotation = furniture.getRotation();
+
+                        gl.glTranslatef(x, 0, z);
+                        gl.glRotatef(rotation, 0, 1, 0);
+                        gl.glScalef(width, height, depth);
+
+                        gl.glDisable(GL2.GL_LIGHTING);
+                        gl.glColor3f(1.0f, 0.0f, 0.0f); // Red wireframe
+                        gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_LINE);
+                        drawCuboid(gl, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+                        gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
+                        gl.glEnable(GL2.GL_LIGHTING);
+
+                        gl.glPopMatrix();
+                    }
                 }
+            }
+
+            private void drawCuboid(GL2 gl, float xMin, float yMin, float zMin, float xMax, float yMax, float zMax) {
+                // Same as in Bed3D.java, but simplified for wireframe
+                gl.glBegin(GL2.GL_QUADS);
+                gl.glVertex3f(xMin, yMin, zMax);
+                gl.glVertex3f(xMax, yMin, zMax);
+                gl.glVertex3f(xMax, yMax, zMax);
+                gl.glVertex3f(xMin, yMax, zMax);
+                gl.glEnd();
+
+                gl.glBegin(GL2.GL_QUADS);
+                gl.glVertex3f(xMax, yMin, zMin);
+                gl.glVertex3f(xMin, yMin, zMin);
+                gl.glVertex3f(xMin, yMax, zMin);
+                gl.glVertex3f(xMax, yMax, zMin);
+                gl.glEnd();
+
+                gl.glBegin(GL2.GL_QUADS);
+                gl.glVertex3f(xMin, yMax, zMin);
+                gl.glVertex3f(xMax, yMax, zMin);
+                gl.glVertex3f(xMax, yMax, zMax);
+                gl.glVertex3f(xMin, yMax, zMax);
+                gl.glEnd();
+
+                gl.glBegin(GL2.GL_QUADS);
+                gl.glVertex3f(xMin, yMin, zMax);
+                gl.glVertex3f(xMax, yMin, zMax);
+                gl.glVertex3f(xMax, yMin, zMin);
+                gl.glVertex3f(xMin, yMin, zMin);
+                gl.glEnd();
+
+                gl.glBegin(GL2.GL_QUADS);
+                gl.glVertex3f(xMin, yMin, zMin);
+                gl.glVertex3f(xMin, yMin, zMax);
+                gl.glVertex3f(xMin, yMax, zMax);
+                gl.glVertex3f(xMin, yMax, zMin);
+                gl.glEnd();
+
+                gl.glBegin(GL2.GL_QUADS);
+                gl.glVertex3f(xMax, yMin, zMax);
+                gl.glVertex3f(xMax, yMin, zMin);
+                gl.glVertex3f(xMax, yMax, zMin);
+                gl.glVertex3f(xMax, yMax, zMax);
+                gl.glEnd();
             }
 
             @Override
@@ -226,7 +306,8 @@ public class DesignPanel extends JPanel {
                 gl.glMatrixMode(GL2.GL_PROJECTION);
                 gl.glLoadIdentity();
                 float aspect = (float) width / height;
-                gl.glFrustum(-aspect, aspect, -1.0, 1.0, 1.0, 100.0);
+                // Adjusted near and far planes to ensure the entire room is visible
+                gl.glFrustum(-aspect * 0.5, aspect * 0.5, -0.5, 0.5, 1.0, 50.0);
                 gl.glMatrixMode(GL2.GL_MODELVIEW);
                 System.out.println("GLEventListener.reshape called");
             }
@@ -237,6 +318,22 @@ public class DesignPanel extends JPanel {
             public void mousePressed(MouseEvent e) {
                 lastX = e.getX();
                 lastY = e.getY();
+
+                // Only attempt to select furniture if not in camera control mode (Ctrl not pressed)
+                if (!e.isControlDown()) {
+                    selectedFurniture = null;
+                    Point3D worldPoint = unproject(lastX, lastY);
+                    if (worldPoint != null) {
+                        for (Furniture furniture : placedFurniture) {
+                            Rectangle2D bounds = getFurnitureBounds3D(furniture);
+                            if (bounds.contains(worldPoint.x, worldPoint.z)) {
+                                selectedFurniture = furniture;
+                                break;
+                            }
+                        }
+                    }
+                    drawingPanel3D.repaint();
+                }
             }
 
             @Override
@@ -252,16 +349,58 @@ public class DesignPanel extends JPanel {
                 int dy = e.getY() - lastY;
 
                 if (e.isControlDown()) {
+                    // Camera rotation mode
                     cameraAngleX += dx * 0.5f;
                     cameraAngleY += dy * 0.5f;
                     if (cameraAngleY > 90) cameraAngleY = 90;
                     if (cameraAngleY < -90) cameraAngleY = -90;
+                } else if (selectedFurniture != null) {
+                    // Move selected furniture
+                    Point3D newWorldPoint = unproject(e.getX(), e.getY());
+                    if (newWorldPoint != null) {
+                        float newX = (float) newWorldPoint.x;
+                        float newZ = (float) newWorldPoint.z;
+
+                        float roomWidth = room.getWidth() / 1000.0f;
+                        float roomDepth = room.getDepth() / 1000.0f;
+
+                        // Convert 3D world coordinates to 2D pixel coordinates for bounds checking
+                        int newXPixels = (int) (newX * 1000 / 10);
+                        int newYPixels = (int) (newZ * 1000 / 10);
+
+                        int roomWidthPixels = room.getWidth() / 10;
+                        int roomDepthPixels = room.getDepth() / 10;
+
+                        Rectangle2D newBounds = getRotatedBounds(newXPixels, newYPixels, selectedFurniture.getWidth(), selectedFurniture.getHeight(), selectedFurniture.getRotation());
+
+                        if (newXPixels < 0) newXPixels = 0;
+                        if (newYPixels < 0) newYPixels = 0;
+                        if (newBounds.getMaxX() > roomWidthPixels) newXPixels = (int) (roomWidthPixels - newBounds.getWidth());
+                        if (newBounds.getMaxY() > roomDepthPixels) newYPixels = (int) (roomDepthPixels - newBounds.getHeight());
+
+                        boolean overlap = false;
+                        for (Furniture other : placedFurniture) {
+                            if (other == selectedFurniture) continue;
+                            Rectangle2D otherBounds = getRotatedBounds(other);
+                            if (newBounds.intersects(otherBounds)) {
+                                overlap = true;
+                                break;
+                            }
+                        }
+
+                        if (!overlap) {
+                            selectedFurniture.setX(newXPixels);
+                            selectedFurniture.setY(newYPixels);
+                        }
+                    }
                 } else {
+                    // Camera panning mode
                     float roomWidth = room.getWidth() / 1000.0f;
                     float roomDepth = room.getDepth() / 1000.0f;
 
-                    cameraPosX -= dx * 0.01f;
-                    cameraPosZ += dy * 0.01f;
+                    // Move camera in the opposite direction of mouse drag for "moving screen effect"
+                    cameraPosX -= dx * 0.01f; // Left/Right panning (dragging right moves camera left)
+                    cameraPosZ -= dy * 0.01f; // Forward/Backward panning (dragging up moves camera backward)
 
                     float margin = 0.5f;
                     if (cameraPosX < -roomWidth / 2 + margin) cameraPosX = -roomWidth / 2 + margin;
@@ -452,6 +591,82 @@ public class DesignPanel extends JPanel {
         });
     }
 
+    // Helper class to store 3D coordinates
+    private static class Point3D {
+        double x, y, z;
+
+        Point3D(double x, double y, double z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+    // Unproject screen coordinates to world coordinates at y=0 (floor plane)
+    private Point3D unproject(int mouseX, int mouseY) {
+        GL2 gl = drawingPanel3D.getGL().getGL2();
+        int[] viewport = new int[4];
+        double[] modelview = new double[16];
+        double[] projection = new double[16];
+        FloatBuffer depth = FloatBuffer.allocate(1); // Allocate a FloatBuffer for depth
+        double[] nearPos = new double[3];
+        double[] farPos = new double[3];
+
+        gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
+        gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, modelview, 0);
+        gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0);
+
+        int y = viewport[3] - mouseY; // Flip y-coordinate
+        gl.glReadPixels(mouseX, y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, depth);
+
+        // Retrieve the depth value
+        depth.rewind();
+        float depthValue = depth.get();
+
+        // Unproject near and far plane points
+        glu.gluUnProject(mouseX, y, 0.0, modelview, 0, projection, 0, viewport, 0, nearPos, 0);
+        glu.gluUnProject(mouseX, y, 1.0, modelview, 0, projection, 0, viewport, 0, farPos, 0);
+
+        // Ray direction
+        double dirX = farPos[0] - nearPos[0];
+        double dirY = farPos[1] - nearPos[1];
+        double dirZ = farPos[2] - nearPos[2];
+
+        // Intersect ray with y=0 plane (floor)
+        if (dirY == 0) return null; // Ray parallel to floor
+
+        double t = -nearPos[1] / dirY; // y = nearPos[1] + t * dirY = 0
+        if (t < 0) return null; // Intersection behind camera
+
+        double x = nearPos[0] + t * dirX;
+        double z = nearPos[2] + t * dirZ;
+
+        return new Point3D(x, 0, z);
+    }
+
+    // Get furniture bounds in 3D world coordinates
+    private Rectangle2D getFurnitureBounds3D(Furniture furniture) {
+        float roomWidth = room.getWidth() / 1000.0f;
+        float roomDepth = room.getDepth() / 1000.0f;
+
+        // Convert pixel coordinates to world coordinates
+        float x = (furniture.getX() * 10.0f / 1000.0f);
+        float z = (furniture.getY() * 10.0f / 1000.0f);
+        float width = furniture.getWidth() * 10.0f / 1000.0f;
+        float depth = furniture.getHeight() * 10.0f / 1000.0f;
+
+        // Adjust for rotation (simplified bounding box)
+        double rad = Math.toRadians(furniture.getRotation());
+        double sin = Math.abs(Math.sin(rad));
+        double cos = Math.abs(Math.cos(rad));
+        double newWidth = width * cos + depth * sin;
+        double newDepth = width * sin + depth * cos;
+        double newX = x - (newWidth - width) / 2;
+        double newZ = z - (newDepth - depth) / 2;
+
+        return new Rectangle2D.Double(newX, newZ, newWidth, newDepth);
+    }
+
     private void startAnimatorWithRetry(FPSAnimator animator, GLJPanel canvas, int retries) {
         Window window = SwingUtilities.getWindowAncestor(canvas);
         if (window != null && window.isVisible() && canvas.isShowing() && !animator.isStarted()) {
@@ -630,6 +845,24 @@ public class DesignPanel extends JPanel {
         }
     }
 
+    private Rectangle2D getRotatedBounds(Furniture furniture) {
+        return getRotatedBounds(furniture.getX(), furniture.getY(), furniture.getWidth(), furniture.getHeight(), furniture.getRotation());
+    }
+
+    private Rectangle2D getRotatedBounds(int x, int y, int width, int height, float rotation) {
+        Rectangle2D rect = new Rectangle2D.Double(x, y, width, height);
+        if (rotation == 0) return rect;
+
+        double rad = Math.toRadians(rotation);
+        double sin = Math.abs(Math.sin(rad));
+        double cos = Math.abs(Math.cos(rad));
+        double newWidth = width * cos + height * sin;
+        double newHeight = width * sin + height * cos;
+        double newX = x + (width - newWidth) / 2;
+        double newY = y + (height - newHeight) / 2;
+        return new Rectangle2D.Double(newX, newY, newWidth, newHeight);
+    }
+
     private class DrawingPanel extends JPanel {
         private Point dragStart;
 
@@ -690,24 +923,6 @@ public class DesignPanel extends JPanel {
                     }
                 }
             });
-        }
-
-        private Rectangle2D getRotatedBounds(Furniture furniture) {
-            return getRotatedBounds(furniture.getX(), furniture.getY(), furniture.getWidth(), furniture.getHeight(), furniture.getRotation());
-        }
-
-        private Rectangle2D getRotatedBounds(int x, int y, int width, int height, float rotation) {
-            Rectangle2D rect = new Rectangle2D.Double(x, y, width, height);
-            if (rotation == 0) return rect;
-
-            double rad = Math.toRadians(rotation);
-            double sin = Math.abs(Math.sin(rad));
-            double cos = Math.abs(Math.cos(rad));
-            double newWidth = width * cos + height * sin;
-            double newHeight = width * sin + height * cos;
-            double newX = x + (width - newWidth) / 2;
-            double newY = y + (height - newHeight) / 2;
-            return new Rectangle2D.Double(newX, newY, newWidth, newHeight);
         }
 
         @Override
