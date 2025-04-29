@@ -15,6 +15,7 @@ public class Main {
     private static DatabaseManager dbManager;
     private static FurnitureFactory furnitureFactory;
 
+
     public static void main(String[] args) {
         // Initialize the database and furniture factory
         dbManager = new DatabaseManager();

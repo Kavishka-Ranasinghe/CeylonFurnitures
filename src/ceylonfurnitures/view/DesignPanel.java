@@ -34,13 +34,14 @@ public class DesignPanel extends JPanel {
     private boolean is3DView;
     private float cameraAngleX = 45.0f;
     private float cameraAngleY = 30.0f;
-    private float cameraDistance = 5.0f;
+    private float cameraDistance = 7.0f;
     private float cameraPosX = 0.0f;
     private float cameraPosZ = 0.0f;
     private int lastX;
     private int lastY;
     private FPSAnimator animator;
     private GLU glu = new GLU();
+
 
     public DesignPanel(User user, FurnitureFactory furnitureFactory, Runnable onBackToDashboard) {
         this.user = user;
@@ -120,7 +121,8 @@ public class DesignPanel extends JPanel {
                 GL2 gl = drawable.getGL().getGL2();
                 gl.glClearColor(0.9f, 0.9f, 0.9f, 1.0f); // Light gray background
                 gl.glEnable(GL2.GL_DEPTH_TEST);
-
+                gl.glDepthFunc(GL2.GL_LESS); // Explicitly set depth function
+                gl.glClearDepth(1.0f); // Clear depth buffer to maximum depth
 
                 // Enable lighting
                 gl.glEnable(GL2.GL_LIGHTING);
@@ -148,7 +150,7 @@ public class DesignPanel extends JPanel {
             public void display(GLAutoDrawable drawable) {
                 System.out.println("GLEventListener.display called");
                 GL2 gl = drawable.getGL().getGL2();
-                gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+                gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT); // Ensure depth buffer is cleared
 
                 gl.glLoadIdentity();
                 gl.glTranslatef(-cameraPosX, 0.0f, -cameraDistance + cameraPosZ);
@@ -306,9 +308,11 @@ public class DesignPanel extends JPanel {
                 gl.glViewport(0, 0, width, height);
                 gl.glMatrixMode(GL2.GL_PROJECTION);
                 gl.glLoadIdentity();
+
                 float aspect = (float) width / height;
-                // Adjusted near and far planes to ensure the entire room is visible
-                gl.glFrustum(-aspect * 0.5, aspect * 0.5, -0.5, 0.5, 0.5, 50.0);
+                // Use gluPerspective to set a narrower field of view
+                glu.gluPerspective(45.0f, aspect, 0.1f, 50.0f); // 45-degree vertical FOV
+
                 gl.glMatrixMode(GL2.GL_MODELVIEW);
                 System.out.println("GLEventListener.reshape called");
             }

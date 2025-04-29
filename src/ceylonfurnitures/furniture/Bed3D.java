@@ -48,42 +48,42 @@ public class Bed3D implements Furniture3D {
 
     private void drawCuboid(GL2 gl, float xMin, float yMin, float zMin, float xMax, float yMax, float zMax) {
         gl.glBegin(GL2.GL_QUADS);
-        // Front
+        // Front face (z = zMax)
         gl.glNormal3f(0, 0, 1);
         gl.glVertex3f(xMin, yMin, zMax);
         gl.glVertex3f(xMax, yMin, zMax);
         gl.glVertex3f(xMax, yMax, zMax);
         gl.glVertex3f(xMin, yMax, zMax);
 
-        // Back
+        // Back face (z = zMin)
         gl.glNormal3f(0, 0, -1);
         gl.glVertex3f(xMax, yMin, zMin);
         gl.glVertex3f(xMin, yMin, zMin);
         gl.glVertex3f(xMin, yMax, zMin);
         gl.glVertex3f(xMax, yMax, zMin);
 
-        // Top
+        // Top face (y = yMax)
         gl.glNormal3f(0, 1, 0);
-        gl.glVertex3f(xMin, yMax, zMin);
-        gl.glVertex3f(xMax, yMax, zMin);
-        gl.glVertex3f(xMax, yMax, zMax);
         gl.glVertex3f(xMin, yMax, zMax);
+        gl.glVertex3f(xMax, yMax, zMax);
+        gl.glVertex3f(xMax, yMax, zMin);
+        gl.glVertex3f(xMin, yMax, zMin);
 
-        // Bottom
+        // Bottom face (y = yMin)
         gl.glNormal3f(0, -1, 0);
-        gl.glVertex3f(xMin, yMin, zMax);
-        gl.glVertex3f(xMax, yMin, zMax);
-        gl.glVertex3f(xMax, yMin, zMin);
         gl.glVertex3f(xMin, yMin, zMin);
+        gl.glVertex3f(xMax, yMin, zMin);
+        gl.glVertex3f(xMax, yMin, zMax);
+        gl.glVertex3f(xMin, yMin, zMax);
 
-        // Left
+        // Left face (x = xMin)
         gl.glNormal3f(-1, 0, 0);
         gl.glVertex3f(xMin, yMin, zMin);
         gl.glVertex3f(xMin, yMin, zMax);
         gl.glVertex3f(xMin, yMax, zMax);
         gl.glVertex3f(xMin, yMax, zMin);
 
-        // Right
+        // Right face (x = xMax)
         gl.glNormal3f(1, 0, 0);
         gl.glVertex3f(xMax, yMin, zMax);
         gl.glVertex3f(xMax, yMin, zMin);
