@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jogamp.opengl.*;
-import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.awt.GLJPanel;
 import com.jogamp.opengl.util.FPSAnimator;
 
 public class DesignPanel extends JPanel {
@@ -26,20 +26,23 @@ public class DesignPanel extends JPanel {
     private List<Furniture> placedFurniture;
     private Furniture selectedFurniture;
     private DrawingPanel drawingPanel2D;
-    private GLCanvas drawingPanel3D;
+    private GLJPanel drawingPanel3D;
     private JPanel glPanelWrapper;
     private boolean is3DView;
     private float cameraAngleX = 45.0f;
     private float cameraAngleY = 30.0f;
     private float cameraDistance = 5.0f;
+    private float cameraPosX = 0.0f;
+    private float cameraPosZ = 0.0f;
     private int lastX;
     private int lastY;
+    private FPSAnimator animator;
 
     public DesignPanel(User user, FurnitureFactory furnitureFactory, Runnable onBackToDashboard) {
         this.user = user;
         this.furnitureFactory = furnitureFactory;
         this.onBackToDashboard = onBackToDashboard;
-        this.room = new Room(5000, 3000, 2700, Color.LIGHT_GRAY, Color.DARK_GRAY);
+        this.room = new Room(5000, 3000, 2700, Color.LIGHT_GRAY, new Color(180, 140, 100));
         this.placedFurniture = new ArrayList<>();
         this.selectedFurniture = null;
         this.is3DView = false;
@@ -90,7 +93,8 @@ public class DesignPanel extends JPanel {
         // Set up 3D panel with JOGL
         GLProfile profile = GLProfile.get(GLProfile.GL2);
         GLCapabilities capabilities = new GLCapabilities(profile);
-        capabilities.setDepthBits(0); // Use default depth
+        capabilities.setDepthBits(16);
+        capabilities.setAlphaBits(8);
         capabilities.setDoubleBuffered(true);
         capabilities.setHardwareAccelerated(true);
         capabilities.setStencilBits(0);
@@ -98,19 +102,35 @@ public class DesignPanel extends JPanel {
         capabilities.setAccumGreenBits(0);
         capabilities.setAccumBlueBits(0);
         capabilities.setAccumAlphaBits(0);
-        drawingPanel3D = new GLCanvas(capabilities);
+        drawingPanel3D = new GLJPanel(capabilities);
         drawingPanel3D.setPreferredSize(new Dimension(600, 400));
 
-        // Wrap GLCanvas in a JPanel to set the border
+        // Wrap GLJPanel in a JPanel to set the border
         glPanelWrapper = new JPanel(new BorderLayout());
         glPanelWrapper.setBorder(BorderFactory.createTitledBorder("Design Area (3D)"));
+        glPanelWrapper.add(drawingPanel3D, BorderLayout.CENTER);
 
         drawingPanel3D.addGLEventListener(new GLEventListener() {
             @Override
             public void init(GLAutoDrawable drawable) {
                 GL2 gl = drawable.getGL().getGL2();
-                gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                gl.glClearColor(0.9f, 0.9f, 0.9f, 1.0f); // Light gray background
                 gl.glEnable(GL2.GL_DEPTH_TEST);
+
+                // Enable lighting
+                gl.glEnable(GL2.GL_LIGHTING);
+                gl.glEnable(GL2.GL_LIGHT0);
+                float[] lightPosition = {0.0f, 5.0f, 5.0f, 1.0f};
+                float[] lightDiffuse = {0.4f, 0.4f, 0.4f, 1.0f};
+                float[] lightAmbient = {0.3f, 0.3f, 0.3f, 1.0f};
+                gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
+                gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
+                gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, lightAmbient, 0);
+                gl.glEnable(GL2.GL_COLOR_MATERIAL);
+                gl.glColorMaterial(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE);
+                gl.glEnable(GL2.GL_CULL_FACE);
+                gl.glCullFace(GL2.GL_BACK);
+
                 System.out.println("GLEventListener.init called");
             }
 
@@ -121,39 +141,75 @@ public class DesignPanel extends JPanel {
 
             @Override
             public void display(GLAutoDrawable drawable) {
-                System.out.println("GLEventListener.display called"); // Add this
+                System.out.println("GLEventListener.display called");
                 GL2 gl = drawable.getGL().getGL2();
                 gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
                 gl.glLoadIdentity();
-                gl.glTranslatef(0.0f, 0.0f, -cameraDistance);
+                gl.glTranslatef(-cameraPosX, 0.0f, -cameraDistance + cameraPosZ);
                 gl.glRotatef(cameraAngleY, 1, 0, 0);
                 gl.glRotatef(cameraAngleX, 0, 1, 0);
 
                 // Draw room
-                float roomWidth = room.getWidth() / 1000.0f; // Convert to meters
+                float roomWidth = room.getWidth() / 1000.0f;
                 float roomDepth = room.getDepth() / 1000.0f;
                 float roomHeight = room.getHeight() / 1000.0f;
 
                 // Floor
                 float[] floorColor = room.getFloorColor().getRGBColorComponents(null);
+                System.out.println("Applying floor color in 3D view - R: " + floorColor[0] + ", G: " + floorColor[1] + ", B: " + floorColor[2]);
+                float[] floorAmbientDiffuse = {floorColor[0], floorColor[1], floorColor[2], 1.0f};
+                gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE, floorAmbientDiffuse, 0);
                 gl.glColor3f(floorColor[0], floorColor[1], floorColor[2]);
                 gl.glBegin(GL2.GL_QUADS);
+                gl.glNormal3f(0.0f, 1.0f, 0.0f);
                 gl.glVertex3f(-roomWidth / 2, 0, -roomDepth / 2);
                 gl.glVertex3f(roomWidth / 2, 0, -roomDepth / 2);
                 gl.glVertex3f(roomWidth / 2, 0, roomDepth / 2);
                 gl.glVertex3f(-roomWidth / 2, 0, roomDepth / 2);
                 gl.glEnd();
 
-                // Walls (simplified for now)
+                // Walls (all four walls)
                 float[] wallColor = room.getWallColor().getRGBColorComponents(null);
+                System.out.println("Applying wall color in 3D view - R: " + wallColor[0] + ", G: " + wallColor[1] + ", B: " + wallColor[2]);
+                float[] wallAmbientDiffuse = {wallColor[0], wallColor[1], wallColor[2], 1.0f};
+                gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE, wallAmbientDiffuse, 0);
                 gl.glColor3f(wallColor[0], wallColor[1], wallColor[2]);
-                // Back wall
+
+                // Back wall (z = -roomDepth/2)
                 gl.glBegin(GL2.GL_QUADS);
+                gl.glNormal3f(0.0f, 0.0f, 1.0f);
                 gl.glVertex3f(-roomWidth / 2, 0, -roomDepth / 2);
                 gl.glVertex3f(roomWidth / 2, 0, -roomDepth / 2);
                 gl.glVertex3f(roomWidth / 2, roomHeight, -roomDepth / 2);
                 gl.glVertex3f(-roomWidth / 2, roomHeight, -roomDepth / 2);
+                gl.glEnd();
+
+                // Front wall (z = roomDepth/2)
+                gl.glBegin(GL2.GL_QUADS);
+                gl.glNormal3f(0.0f, 0.0f, -1.0f);
+                gl.glVertex3f(-roomWidth / 2, 0, roomDepth / 2);
+                gl.glVertex3f(-roomWidth / 2, roomHeight, roomDepth / 2);
+                gl.glVertex3f(roomWidth / 2, roomHeight, roomDepth / 2);
+                gl.glVertex3f(roomWidth / 2, 0, roomDepth / 2);
+                gl.glEnd();
+
+                // Left wall (x = -roomWidth/2)
+                gl.glBegin(GL2.GL_QUADS);
+                gl.glNormal3f(1.0f, 0.0f, 0.0f);
+                gl.glVertex3f(-roomWidth / 2, 0, -roomDepth / 2);
+                gl.glVertex3f(-roomWidth / 2, roomHeight, -roomDepth / 2);
+                gl.glVertex3f(-roomWidth / 2, roomHeight, roomDepth / 2);
+                gl.glVertex3f(-roomWidth / 2, 0, roomDepth / 2);
+                gl.glEnd();
+
+                // Right wall (x = roomWidth/2)
+                gl.glBegin(GL2.GL_QUADS);
+                gl.glNormal3f(-1.0f, 0.0f, 0.0f);
+                gl.glVertex3f(roomWidth / 2, 0, -roomDepth / 2);
+                gl.glVertex3f(roomWidth / 2, 0, roomDepth / 2);
+                gl.glVertex3f(roomWidth / 2, roomHeight, roomDepth / 2);
+                gl.glVertex3f(roomWidth / 2, roomHeight, -roomDepth / 2);
                 gl.glEnd();
 
                 // Draw furniture
@@ -194,10 +250,26 @@ public class DesignPanel extends JPanel {
             public void mouseDragged(MouseEvent e) {
                 int dx = e.getX() - lastX;
                 int dy = e.getY() - lastY;
-                cameraAngleX += dx * 0.5f;
-                cameraAngleY += dy * 0.5f;
-                if (cameraAngleY > 90) cameraAngleY = 90;
-                if (cameraAngleY < -90) cameraAngleY = -90;
+
+                if (e.isControlDown()) {
+                    cameraAngleX += dx * 0.5f;
+                    cameraAngleY += dy * 0.5f;
+                    if (cameraAngleY > 90) cameraAngleY = 90;
+                    if (cameraAngleY < -90) cameraAngleY = -90;
+                } else {
+                    float roomWidth = room.getWidth() / 1000.0f;
+                    float roomDepth = room.getDepth() / 1000.0f;
+
+                    cameraPosX -= dx * 0.01f;
+                    cameraPosZ += dy * 0.01f;
+
+                    float margin = 0.5f;
+                    if (cameraPosX < -roomWidth / 2 + margin) cameraPosX = -roomWidth / 2 + margin;
+                    if (cameraPosX > roomWidth / 2 - margin) cameraPosX = roomWidth / 2 - margin;
+                    if (cameraPosZ < -roomDepth / 2 + margin) cameraPosZ = -roomDepth / 2 + margin;
+                    if (cameraPosZ > roomDepth / 2 - margin) cameraPosZ = roomDepth / 2 - margin;
+                }
+
                 lastX = e.getX();
                 lastY = e.getY();
                 drawingPanel3D.repaint();
@@ -211,27 +283,10 @@ public class DesignPanel extends JPanel {
             drawingPanel3D.repaint();
         });
 
-        FPSAnimator animator = new FPSAnimator(drawingPanel3D, 60, true);
-        animator.start();
-        System.out.println("FPSAnimator started: " + animator.isStarted());
+        animator = new FPSAnimator(drawingPanel3D, 60, true);
 
         // Add 2D panel by default
         add(drawingPanel2D, BorderLayout.CENTER);
-
-        // Add a ComponentListener to add the GLCanvas when the panel is visible
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentShown(ComponentEvent e) {
-                if (!glPanelWrapper.isAncestorOf(drawingPanel3D)) {
-                    SwingUtilities.invokeLater(() -> {
-                        glPanelWrapper.add(drawingPanel3D, BorderLayout.CENTER);
-                        glPanelWrapper.revalidate();
-                        animator.start();
-                        System.out.println("FPSAnimator started in ComponentListener: " + animator.isStarted());
-                    });
-                }
-            }
-        });
 
         // Right Panel (Customization)
         JPanel rightPanel = new JPanel(new GridBagLayout());
@@ -314,6 +369,16 @@ public class DesignPanel extends JPanel {
                 add(is3DView ? glPanelWrapper : drawingPanel2D, BorderLayout.CENTER);
                 revalidate();
                 repaint();
+                if (is3DView) {
+                    System.out.println("Toggling to 3D view, starting FPSAnimator");
+                    startAnimatorWithRetry(animator, drawingPanel3D, 5);
+                    drawingPanel3D.repaint();
+                } else {
+                    System.out.println("Toggling to 2D view, stopping FPSAnimator");
+                    if (animator.isStarted()) {
+                        animator.stop();
+                    }
+                }
             } catch (Exception ex) {
                 is3DView = false;
                 remove(glPanelWrapper);
@@ -387,12 +452,29 @@ public class DesignPanel extends JPanel {
         });
     }
 
+    private void startAnimatorWithRetry(FPSAnimator animator, GLJPanel canvas, int retries) {
+        Window window = SwingUtilities.getWindowAncestor(canvas);
+        if (window != null && window.isVisible() && canvas.isShowing() && !animator.isStarted()) {
+            animator.start();
+            System.out.println("FPSAnimator started: " + animator.isStarted());
+        } else if (retries > 0) {
+            System.out.println("GLJPanel not ready yet, window not visible, or animator not started, retrying... (" + retries + " attempts left)");
+            new Timer(100, e -> {
+                startAnimatorWithRetry(animator, canvas, retries - 1);
+                ((Timer) e.getSource()).stop();
+            }).start();
+        } else {
+            System.out.println("Failed to start FPSAnimator after retries.");
+        }
+    }
+
     private void showRoomDialog() {
         JDialog roomDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Room Properties", true);
         roomDialog.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
 
+        // Room Dimensions
         JLabel widthLabel = new JLabel("Width (mm):");
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -423,47 +505,96 @@ public class DesignPanel extends JPanel {
         gbc.gridy = 2;
         roomDialog.add(heightField, gbc);
 
-        JLabel wallColorLabel = new JLabel("Wall Color:");
+        // Wall Colors
+        JLabel wallColorLabel = new JLabel("Walls:");
         gbc.gridx = 0;
         gbc.gridy = 3;
         roomDialog.add(wallColorLabel, gbc);
 
-        JButton wallColorButton = new JButton("Choose Wall Color");
+        Color[] wallColors = {
+                new Color(200, 200, 200), // Light gray
+                Color.WHITE,
+                new Color(240, 220, 220), // Light pink (like Flatma)
+                new Color(220, 240, 220), // Light green
+                new Color(240, 240, 220), // Light beige
+                new Color(220, 220, 240), // Light blue
+                new Color(240, 240, 200), // Light yellow
+                new Color(230, 220, 240), // Soft lavender
+                new Color(245, 245, 240)  // Off-white
+        };
+        JPanel wallColorPanel = new JPanel(new GridLayout(2, 5, 5, 5));
+        for (Color color : wallColors) {
+            JButton colorButton = new JButton();
+            colorButton.setBackground(color);
+            colorButton.setPreferredSize(new Dimension(30, 30));
+            colorButton.addActionListener(e -> {
+                room.setWallColor(color);
+                repaintDrawingArea();
+            });
+            wallColorPanel.add(colorButton);
+        }
+        JButton customWallColorButton = new JButton("Custom");
+        customWallColorButton.addActionListener(e -> {
+            Color customColor = JColorChooser.showDialog(roomDialog, "Choose Custom Wall Color", room.getWallColor());
+            if (customColor != null) {
+                room.setWallColor(customColor);
+                repaintDrawingArea();
+            }
+        });
+        wallColorPanel.add(customWallColorButton);
         gbc.gridx = 1;
         gbc.gridy = 3;
-        roomDialog.add(wallColorButton, gbc);
+        roomDialog.add(wallColorPanel, gbc);
 
-        JLabel floorColorLabel = new JLabel("Floor Color:");
+        // Floor Colors
+        JLabel floorColorLabel = new JLabel("Floor:");
         gbc.gridx = 0;
         gbc.gridy = 4;
         roomDialog.add(floorColorLabel, gbc);
 
-        JButton floorColorButton = new JButton("Choose Floor Color");
+        Color[] floorColors = {
+                new Color(180, 140, 100), // Light wood (like Flatma)
+                new Color(200, 160, 120), // Medium wood
+                new Color(220, 180, 140), // Lighter wood
+                new Color(50, 50, 50),    // Dark gray
+                new Color(150, 150, 150), // Medium gray
+                new Color(120, 80, 40),   // Dark wood
+                new Color(240, 240, 240), // White marble
+                new Color(100, 100, 100), // Gray tiles
+                new Color(220, 200, 180)  // Beige tiles
+        };
+        JPanel floorColorPanel = new JPanel(new GridLayout(2, 5, 5, 5));
+        for (Color color : floorColors) {
+            JButton colorButton = new JButton();
+            colorButton.setBackground(color);
+            colorButton.setPreferredSize(new Dimension(30, 30));
+            colorButton.addActionListener(e -> {
+                room.setFloorColor(color);
+                System.out.println("Floor color set to - R: " + color.getRed() + ", G: " + color.getGreen() + ", B: " + color.getBlue());
+                repaintDrawingArea();
+            });
+            floorColorPanel.add(colorButton);
+        }
+        JButton customFloorColorButton = new JButton("Custom");
+        customFloorColorButton.addActionListener(e -> {
+            Color customColor = JColorChooser.showDialog(roomDialog, "Choose Custom Floor Color", room.getFloorColor());
+            if (customColor != null) {
+                room.setFloorColor(customColor);
+                System.out.println("Custom floor color set to - R: " + customColor.getRed() + ", G: " + customColor.getGreen() + ", B: " + customColor.getBlue());
+                repaintDrawingArea();
+            }
+        });
+        floorColorPanel.add(customFloorColorButton);
         gbc.gridx = 1;
         gbc.gridy = 4;
-        roomDialog.add(floorColorButton, gbc);
+        roomDialog.add(floorColorPanel, gbc);
 
+        // Apply Button
         JButton applyButton = new JButton("Apply");
         gbc.gridx = 0;
         gbc.gridy = 5;
         gbc.gridwidth = 2;
         roomDialog.add(applyButton, gbc);
-
-        wallColorButton.addActionListener(e -> {
-            Color newColor = JColorChooser.showDialog(roomDialog, "Choose Wall Color", room.getWallColor());
-            if (newColor != null) {
-                room.setWallColor(newColor);
-                repaintDrawingArea();
-            }
-        });
-
-        floorColorButton.addActionListener(e -> {
-            Color newColor = JColorChooser.showDialog(roomDialog, "Choose Floor Color", room.getFloorColor());
-            if (newColor != null) {
-                room.setFloorColor(newColor);
-                repaintDrawingArea();
-            }
-        });
 
         applyButton.addActionListener(e -> {
             try {
@@ -491,8 +622,10 @@ public class DesignPanel extends JPanel {
 
     private void repaintDrawingArea() {
         if (is3DView) {
+            System.out.println("Repainting 3D view");
             drawingPanel3D.repaint();
         } else {
+            System.out.println("Repainting 2D view");
             drawingPanel2D.repaint();
         }
     }
@@ -533,13 +666,11 @@ public class DesignPanel extends JPanel {
 
                         Rectangle2D newBounds = getRotatedBounds(newX, newY, selectedFurniture.getWidth(), selectedFurniture.getHeight(), selectedFurniture.getRotation());
 
-                        // Check room bounds
                         if (newX < 0) newX = 0;
                         if (newY < 0) newY = 0;
                         if (newBounds.getMaxX() > roomWidth) newX = (int) (roomWidth - newBounds.getWidth());
                         if (newBounds.getMaxY() > roomDepth) newY = (int) (roomDepth - newBounds.getHeight());
 
-                        // Check for overlap with other furniture
                         boolean overlap = false;
                         for (Furniture other : placedFurniture) {
                             if (other == selectedFurniture) continue;
@@ -588,6 +719,9 @@ public class DesignPanel extends JPanel {
             int roomDepth = room.getDepth() / 10;
 
             g2d.setColor(room.getFloorColor());
+            System.out.println("Applying floor color in 2D view - R: " + room.getFloorColor().getRed() +
+                    ", G: " + room.getFloorColor().getGreen() +
+                    ", B: " + room.getFloorColor().getBlue());
             g2d.fillRect(0, 0, roomWidth, roomDepth);
 
             g2d.setColor(Color.BLACK);
