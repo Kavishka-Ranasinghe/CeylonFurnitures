@@ -128,8 +128,8 @@ public class DesignPanel extends JPanel {
                 gl.glEnable(GL2.GL_LIGHTING);
                 gl.glEnable(GL2.GL_LIGHT0);
                 float[] lightPosition = {0.0f, 5.0f, 5.0f, 1.0f};
-                float[] lightDiffuse = {0.8f, 0.8f, 0.8f, 1.0f};
-                float[] lightAmbient = {0.6f, 0.6f, 0.6f, 1.0f};
+                float[] lightDiffuse = {0.5f, 0.5f, 0.5f, 1.0f};
+                float[] lightAmbient = {0.4f, 0.4f, 0.4f, 1.0f};
                 gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
                 gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, lightDiffuse, 0);
                 gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, lightAmbient, 0);
@@ -166,17 +166,18 @@ public class DesignPanel extends JPanel {
                 gl.glTranslatef(-roomWidth / 2, 0, -roomDepth / 2);
 
                 // Floor
+                // Floor
                 float[] floorColor = room.getFloorColor().getRGBColorComponents(null);
                 System.out.println("Applying floor color in 3D view - R: " + floorColor[0] + ", G: " + floorColor[1] + ", B: " + floorColor[2]);
                 float[] floorAmbientDiffuse = {floorColor[0], floorColor[1], floorColor[2], 1.0f};
                 gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE, floorAmbientDiffuse, 0);
                 gl.glColor3f(floorColor[0], floorColor[1], floorColor[2]);
                 gl.glBegin(GL2.GL_QUADS);
-                gl.glNormal3f(0.0f, 1.0f, 0.0f);
-                gl.glVertex3f(0, 0, 0);
-                gl.glVertex3f(roomWidth, 0, 0);
-                gl.glVertex3f(roomWidth, 0, roomDepth);
-                gl.glVertex3f(0, 0, roomDepth);
+                gl.glNormal3f(0.0f, 1.0f, 0.0f); // Normal pointing up (along +Y)
+                gl.glVertex3f(0, 0, roomDepth);  // Top-left
+                gl.glVertex3f(roomWidth, 0, roomDepth); // Top-right
+                gl.glVertex3f(roomWidth, 0, 0);  // Bottom-right
+                gl.glVertex3f(0, 0, 0);          // Bottom-left
                 gl.glEnd();
 
                 // Walls (all four walls)
@@ -188,7 +189,7 @@ public class DesignPanel extends JPanel {
 
                 // Back wall (z = 0)
                 gl.glBegin(GL2.GL_QUADS);
-                gl.glNormal3f(0.0f, 0.0f, 1.0f);
+                gl.glNormal3f(0.0f, 0.0f, 1.0f); // Normal pointing toward +Z (inward)
                 gl.glVertex3f(0, 0, 0);
                 gl.glVertex3f(roomWidth, 0, 0);
                 gl.glVertex3f(roomWidth, roomHeight, 0);
@@ -197,7 +198,7 @@ public class DesignPanel extends JPanel {
 
                 // Front wall (z = roomDepth)
                 gl.glBegin(GL2.GL_QUADS);
-                gl.glNormal3f(0.0f, 0.0f, -1.0f);
+                gl.glNormal3f(0.0f, 0.0f, -1.0f); // Normal pointing toward -Z (inward)
                 gl.glVertex3f(0, 0, roomDepth);
                 gl.glVertex3f(0, roomHeight, roomDepth);
                 gl.glVertex3f(roomWidth, roomHeight, roomDepth);
@@ -206,7 +207,7 @@ public class DesignPanel extends JPanel {
 
                 // Left wall (x = 0)
                 gl.glBegin(GL2.GL_QUADS);
-                gl.glNormal3f(1.0f, 0.0f, 0.0f);
+                gl.glNormal3f(1.0f, 0.0f, 0.0f); // Normal pointing toward +X (inward)
                 gl.glVertex3f(0, 0, 0);
                 gl.glVertex3f(0, roomHeight, 0);
                 gl.glVertex3f(0, roomHeight, roomDepth);
@@ -215,7 +216,7 @@ public class DesignPanel extends JPanel {
 
                 // Right wall (x = roomWidth)
                 gl.glBegin(GL2.GL_QUADS);
-                gl.glNormal3f(-1.0f, 0.0f, 0.0f);
+                gl.glNormal3f(-1.0f, 0.0f, 0.0f); // Normal pointing toward -X (inward)
                 gl.glVertex3f(roomWidth, 0, 0);
                 gl.glVertex3f(roomWidth, 0, roomDepth);
                 gl.glVertex3f(roomWidth, roomHeight, roomDepth);
