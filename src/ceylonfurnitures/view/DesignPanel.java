@@ -121,6 +121,7 @@ public class DesignPanel extends JPanel {
                 gl.glClearColor(0.9f, 0.9f, 0.9f, 1.0f); // Light gray background
                 gl.glEnable(GL2.GL_DEPTH_TEST);
 
+
                 // Enable lighting
                 gl.glEnable(GL2.GL_LIGHTING);
                 gl.glEnable(GL2.GL_LIGHT0);
@@ -307,7 +308,7 @@ public class DesignPanel extends JPanel {
                 gl.glLoadIdentity();
                 float aspect = (float) width / height;
                 // Adjusted near and far planes to ensure the entire room is visible
-                gl.glFrustum(-aspect * 0.5, aspect * 0.5, -0.5, 0.5, 1.0, 50.0);
+                gl.glFrustum(-aspect * 0.5, aspect * 0.5, -0.5, 0.5, 0.5, 50.0);
                 gl.glMatrixMode(GL2.GL_MODELVIEW);
                 System.out.println("GLEventListener.reshape called");
             }
