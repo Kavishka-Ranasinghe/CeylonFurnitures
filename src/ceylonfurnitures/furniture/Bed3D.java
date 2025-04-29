@@ -26,25 +26,30 @@ public class Bed3D implements Furniture3D {
 
         gl.glPushMatrix();
 
-        // Move to center of the furniture
         gl.glTranslatef(x + width / 2f, 0, z + depth / 2f);
-
-        // Apply rotation
         gl.glRotatef(rotation, 0, 1, 0);
-
-        // Move back to draw from (0,0,0)
         gl.glTranslatef(-width / 2f, 0, -depth / 2f);
 
-        // Draw bed base
+        // Draw bed base (thicker base)
         gl.glColor3f(r, g, b);
-        drawCuboid(gl, 0f, 0f, 0f, width, height, depth);
+        drawCuboid(gl, 0f, 0f, 0f, width, 0.15f, depth);
 
-       // Draw headboard at the near end (head side):
-        gl.glColor3f(r * 0.8f, g * 0.8f, b * 0.8f);
-        drawCuboid(gl, 0f, height, 0f, width, height + 1.0f, 0.05f);
+        // Draw mattress (white or slightly brighter)
+        gl.glColor3f(r * 1.1f, g * 1.1f, b * 1.1f);
+        drawCuboid(gl, 0.05f, 0.15f, 0.05f, width - 0.05f, 0.35f, depth - 0.05f);
+
+        // Draw headboard (at back)
+        gl.glColor3f(r * 0.7f, g * 0.7f, b * 0.7f);
+        drawCuboid(gl, 0f, 0.15f, 0f, width, 0.9f, 0.07f);
+
+        // Draw pillows (two blocks)
+        gl.glColor3f(1.0f, 1.0f, 1.0f);
+        drawCuboid(gl, width * 0.1f, 0.35f, 0.08f, width * 0.4f, 0.45f, 0.25f); // Left pillow
+        drawCuboid(gl, width * 0.6f, 0.35f, 0.08f, width * 0.9f, 0.45f, 0.25f); // Right pillow
 
         gl.glPopMatrix();
     }
+
 
     private void drawCuboid(GL2 gl, float xMin, float yMin, float zMin, float xMax, float yMax, float zMax) {
         gl.glBegin(GL2.GL_QUADS);
