@@ -39,9 +39,9 @@ public class Bed3D implements Furniture3D {
         gl.glColor3f(r, g, b);
         drawCuboid(gl, 0f, 0f, 0f, width, height, depth);
 
-        // Draw headboard at the far end (foot side):
+       // Draw headboard at the near end (head side):
         gl.glColor3f(r * 0.8f, g * 0.8f, b * 0.8f);
-        drawCuboid(gl, 0f, height, depth - 0.05f, width, height + 1.0f, depth);
+        drawCuboid(gl, 0f, height, 0f, width, height + 1.0f, 0.05f);
 
         gl.glPopMatrix();
     }
