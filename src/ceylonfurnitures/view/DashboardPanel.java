@@ -32,34 +32,58 @@ public class DashboardPanel extends JPanel {
         // App Bar (North)
         JPanel appBar = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JLabel welcomeLabel = new JLabel("Welcome, " + user.getUsername());
-        JButton profileButton = new JButton("Profile");
-        JButton savedDesignsButton = new JButton("Saved Designs");
-        JButton logoutButton = new JButton("Logout");
 
         appBar.add(welcomeLabel);
-        appBar.add(profileButton);
-        appBar.add(savedDesignsButton);
-        appBar.add(logoutButton);
         add(appBar, BorderLayout.NORTH);
 
-        // Furniture Grid (Center)
-        JPanel furniturePanel = new JPanel(new GridLayout(0, 3, 10, 10)); // 3 columns, dynamic rows
-        furniturePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        List<Furniture> furnitureTypes = furnitureFactory.getFurnitureTypes();
-        for (Furniture furniture : furnitureTypes) {
-            JButton furnitureButton = new JButton(furniture.getDisplayName());
-            furnitureButton.addActionListener(e -> {
-                System.out.println("Selected furniture: " + furniture.getType());
-                onStartDesign.run();
-            });
-            furniturePanel.add(furnitureButton);
-        }
-        add(new JScrollPane(furniturePanel), BorderLayout.CENTER);
+        // Action Grid (Center)
+        JPanel actionPanel = new JPanel(new GridLayout(2, 3, 10, 10)); // 2 rows, 3 columns
+        actionPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Action Listeners
+        // Create Design Button
+        JButton createDesignButton = new JButton("Create Design");
+        createDesignButton.addActionListener(e -> {
+            System.out.println("Create Design button clicked");
+            onStartDesign.run();
+        });
+        actionPanel.add(createDesignButton);
+
+        // Saved Design Button
+        JButton savedDesignButton = new JButton("Saved Design");
+        savedDesignButton.addActionListener(e -> onShowSavedDesigns.run());
+        actionPanel.add(savedDesignButton);
+
+        // Load Design Button (Placeholder for Day 7)
+        JButton loadDesignButton = new JButton("Load Design");
+        loadDesignButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Load Design functionality will be implemented in Day 7!");
+        });
+        actionPanel.add(loadDesignButton);
+
+        // Profile Button
+        JButton profileButton = new JButton("Profile");
         profileButton.addActionListener(e -> showProfileDialog());
-        savedDesignsButton.addActionListener(e -> onShowSavedDesigns.run());
+        actionPanel.add(profileButton);
+
+        // Logout Button
+        JButton logoutButton = new JButton("Logout");
         logoutButton.addActionListener(e -> onLogout.run());
+        actionPanel.add(logoutButton);
+
+        // About Us Button
+        JButton aboutUsButton = new JButton("About Us");
+        aboutUsButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this,
+                    "Ceylon Furnitures\n" +
+                            "Version 1.0\n" +
+                            "Developed by: Your Team Name\n" +
+                            "A simple furniture design application to help you create and visualize room layouts.",
+                    "About Us",
+                    JOptionPane.INFORMATION_MESSAGE);
+        });
+        actionPanel.add(aboutUsButton);
+
+        add(new JScrollPane(actionPanel), BorderLayout.CENTER);
     }
 
     private void showProfileDialog() {
