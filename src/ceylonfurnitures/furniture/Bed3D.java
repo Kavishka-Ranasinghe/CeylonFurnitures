@@ -26,69 +26,65 @@ public class Bed3D implements Furniture3D {
 
         gl.glPushMatrix();
 
-        gl.glTranslatef(x + width / 2f, 0, z + depth / 2f);
-        gl.glRotatef(rotation, 0, 1, 0);
-        gl.glTranslatef(-width / 2f, 0, -depth / 2f);
+        // Match 2D (top-left corner) origin
+        gl.glTranslatef(x, 0, z);
+        gl.glTranslatef(width / 2f, 0, depth / 2f); // Move to center for rotation
+        gl.glRotatef(-rotation, 0, 1, 0);
+        gl.glTranslatef(-width / 2f, 0, -depth / 2f); // Back to top-left
 
-        // Draw bed base (thicker base)
+        // Bed base
         gl.glColor3f(r, g, b);
         drawCuboid(gl, 0f, 0f, 0f, width, 0.15f, depth);
 
-        // Draw mattress (white or slightly brighter)
+        // Mattress
         gl.glColor3f(r * 1.1f, g * 1.1f, b * 1.1f);
         drawCuboid(gl, 0.05f, 0.15f, 0.05f, width - 0.05f, 0.35f, depth - 0.05f);
 
-        // Draw headboard (at back)
+        // Headboard
         gl.glColor3f(r * 0.7f, g * 0.7f, b * 0.7f);
         drawCuboid(gl, 0f, 0.15f, 0f, width, 0.9f, 0.07f);
 
-        // Draw pillows (two blocks)
+        // Pillows
         gl.glColor3f(1.0f, 1.0f, 1.0f);
-        drawCuboid(gl, width * 0.1f, 0.35f, 0.08f, width * 0.4f, 0.45f, 0.25f); // Left pillow
-        drawCuboid(gl, width * 0.6f, 0.35f, 0.08f, width * 0.9f, 0.45f, 0.25f); // Right pillow
+        drawCuboid(gl, width * 0.1f, 0.35f, 0.08f, width * 0.4f, 0.45f, 0.25f);
+        drawCuboid(gl, width * 0.6f, 0.35f, 0.08f, width * 0.9f, 0.45f, 0.25f);
 
         gl.glPopMatrix();
     }
 
-
     private void drawCuboid(GL2 gl, float xMin, float yMin, float zMin, float xMax, float yMax, float zMax) {
         gl.glBegin(GL2.GL_QUADS);
-        // Front face (z = zMax)
+        // Front
         gl.glNormal3f(0, 0, 1);
         gl.glVertex3f(xMin, yMin, zMax);
         gl.glVertex3f(xMax, yMin, zMax);
         gl.glVertex3f(xMax, yMax, zMax);
         gl.glVertex3f(xMin, yMax, zMax);
-
-        // Back face (z = zMin)
+        // Back
         gl.glNormal3f(0, 0, -1);
         gl.glVertex3f(xMax, yMin, zMin);
         gl.glVertex3f(xMin, yMin, zMin);
         gl.glVertex3f(xMin, yMax, zMin);
         gl.glVertex3f(xMax, yMax, zMin);
-
-        // Top face (y = yMax)
+        // Top
         gl.glNormal3f(0, 1, 0);
         gl.glVertex3f(xMin, yMax, zMax);
         gl.glVertex3f(xMax, yMax, zMax);
         gl.glVertex3f(xMax, yMax, zMin);
         gl.glVertex3f(xMin, yMax, zMin);
-
-        // Bottom face (y = yMin)
+        // Bottom
         gl.glNormal3f(0, -1, 0);
         gl.glVertex3f(xMin, yMin, zMin);
         gl.glVertex3f(xMax, yMin, zMin);
         gl.glVertex3f(xMax, yMin, zMax);
         gl.glVertex3f(xMin, yMin, zMax);
-
-        // Left face (x = xMin)
+        // Left
         gl.glNormal3f(-1, 0, 0);
         gl.glVertex3f(xMin, yMin, zMin);
         gl.glVertex3f(xMin, yMin, zMax);
         gl.glVertex3f(xMin, yMax, zMax);
         gl.glVertex3f(xMin, yMax, zMin);
-
-        // Right face (x = xMax)
+        // Right
         gl.glNormal3f(1, 0, 0);
         gl.glVertex3f(xMax, yMin, zMax);
         gl.glVertex3f(xMax, yMin, zMin);

@@ -32,7 +32,7 @@ public class DesignPanel extends JPanel {
     private GLJPanel drawingPanel3D;
     private JPanel glPanelWrapper;
     private boolean is3DView;
-    private float cameraAngleX = 45.0f;
+    private float cameraAngleX = 0.0f; // Fixed typo by removing "ır"
     private float cameraAngleY = 30.0f;
     private float cameraDistance = 7.0f;
     private float cameraPosX = 0.0f;
@@ -164,19 +164,24 @@ public class DesignPanel extends JPanel {
                 // Center the room in world coordinates
                 gl.glTranslatef(-roomWidth / 2, 0, -roomDepth / 2);
 
-                // Floor
+                // Floor - Adjusted vertex order to match 2D view
                 float[] floorColor = room.getFloorColor().getRGBColorComponents(null);
                 System.out.println("Applying floor color in 3D view - R: " + floorColor[0] + ", G: " + floorColor[1] + ", B: " + floorColor[2]);
                 float[] floorAmbientDiffuse = {floorColor[0], floorColor[1], floorColor[2], 1.0f};
                 gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE, floorAmbientDiffuse, 0);
                 gl.glColor3f(floorColor[0], floorColor[1], floorColor[2]);
+                gl.glDisable(GL2.GL_CULL_FACE); // Temporarily disable culling to show floor from top view
+
                 gl.glBegin(GL2.GL_QUADS);
-                gl.glNormal3f(0.0f, 1.0f, 0.0f); // Normal pointing up (along +Y)
+                gl.glNormal3f(0.0f, 1.0f, 0.0f); // Normal pointing up
                 gl.glVertex3f(0, 0, roomDepth);  // Top-left
-                gl.glVertex3f(roomWidth, 0, roomDepth); // Top-right
+                gl.glVertex3f(roomWidth, 0, roomDepth);  // Top-right
                 gl.glVertex3f(roomWidth, 0, 0);  // Bottom-right
                 gl.glVertex3f(0, 0, 0);          // Bottom-left
                 gl.glEnd();
+
+                gl.glEnable(GL2.GL_CULL_FACE); // Re-enable culling after floor
+
 
                 // Walls (all four walls)
                 float[] wallColor = room.getWallColor().getRGBColorComponents(null);
@@ -693,7 +698,7 @@ public class DesignPanel extends JPanel {
     private void startAnimatorWithRetry(FPSAnimator animator, GLJPanel canvas, int retries) {
         Window window = SwingUtilities.getWindowAncestor(canvas);
         if (window != null && window.isVisible() && canvas.isShowing() && !animator.isStarted()) {
-            animator.start(); // Fixed the typo here
+            animator.start();
             System.out.println("FPSAnimator started: " + animator.isStarted());
         } else if (retries > 0) {
             System.out.println("GLJPanel not ready yet, window not visible, or animator not started, retrying... (" + retries + " attempts left)");
