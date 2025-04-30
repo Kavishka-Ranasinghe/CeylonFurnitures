@@ -40,6 +40,13 @@ public class DesignPanel extends JPanel {
     private int lastX;
     private int lastY;
     private FPSAnimator animator;
+    private JPanel leftPanel;         // Furniture panel
+    private JPanel rightPanel;        // Customization panel
+    private JButton colorButton;
+    private JTextField widthField, heightField, rotationField;
+    private JSlider shadingSlider;
+    private JButton applyButton, deleteButton;
+    private JButton toggleSidePanelsButton;
     private GLU glu = new GLU();
 
     public DesignPanel(User user, FurnitureFactory furnitureFactory, Runnable onBackToDashboard) {
@@ -58,13 +65,22 @@ public class DesignPanel extends JPanel {
         JButton backButton = new JButton("Back to Dashboard");
         JButton toggleViewButton = new JButton("Toggle 2D/3D View");
         JButton saveButton = new JButton("Save Design");
+        toggleSidePanelsButton = new JButton("Hide Side Panels");
+        toggleSidePanelsButton.addActionListener(e -> {
+            boolean visible = leftPanel.isVisible();
+            leftPanel.setVisible(!visible);
+            rightPanel.setVisible(!visible);
+            toggleSidePanelsButton.setText(visible ? "Show Side Panels" : "Hide Side Panels");
+        });
+
+        topBar.add(toggleSidePanelsButton);
         topBar.add(backButton);
         topBar.add(toggleViewButton);
         topBar.add(saveButton);
         add(topBar, BorderLayout.NORTH);
 
         // Left Panel (Furniture Library)
-        JPanel leftPanel = new JPanel();
+        leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setBorder(BorderFactory.createTitledBorder("Furniture Library"));
         List<Furniture> furnitureTypes = furnitureFactory.getFurnitureTypes();
@@ -437,7 +453,7 @@ public class DesignPanel extends JPanel {
         add(drawingPanel2D, BorderLayout.CENTER);
 
         // Right Panel (Customization)
-        JPanel rightPanel = new JPanel(new GridBagLayout());
+        rightPanel = new JPanel(new GridBagLayout());
         rightPanel.setBorder(BorderFactory.createTitledBorder("Customization"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -453,7 +469,7 @@ public class DesignPanel extends JPanel {
         gbc.gridy = 1;
         rightPanel.add(colorLabel, gbc);
 
-        JButton colorButton = new JButton("Choose Color");
+        colorButton = new JButton("Choose Color");
         gbc.gridx = 0;
         gbc.gridy = 2;
         rightPanel.add(colorButton, gbc);
@@ -517,6 +533,17 @@ public class DesignPanel extends JPanel {
         backButton.addActionListener(e -> onBackToDashboard.run());
         toggleViewButton.addActionListener(e -> {
             is3DView = !is3DView;
+
+            // Disable or enable customization fields in 3D view
+            boolean enableFurnitureControls = !is3DView;
+            colorButton.setEnabled(enableFurnitureControls);
+            widthField.setEnabled(enableFurnitureControls);
+            heightField.setEnabled(enableFurnitureControls);
+            rotationField.setEnabled(enableFurnitureControls);
+            shadingSlider.setEnabled(enableFurnitureControls);
+            applyButton.setEnabled(enableFurnitureControls);
+            deleteButton.setEnabled(enableFurnitureControls);
+
             try {
                 remove(is3DView ? drawingPanel2D : glPanelWrapper);
                 add(is3DView ? glPanelWrapper : drawingPanel2D, BorderLayout.CENTER);
@@ -544,6 +571,7 @@ public class DesignPanel extends JPanel {
                         JOptionPane.ERROR_MESSAGE);
             }
         });
+
 
         saveButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Save functionality will be implemented in Day 7!"));
 
