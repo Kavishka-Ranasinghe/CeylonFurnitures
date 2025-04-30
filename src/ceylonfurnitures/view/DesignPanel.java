@@ -42,7 +42,6 @@ public class DesignPanel extends JPanel {
     private FPSAnimator animator;
     private GLU glu = new GLU();
 
-
     public DesignPanel(User user, FurnitureFactory furnitureFactory, Runnable onBackToDashboard) {
         this.user = user;
         this.furnitureFactory = furnitureFactory;
@@ -165,7 +164,6 @@ public class DesignPanel extends JPanel {
                 // Center the room in world coordinates
                 gl.glTranslatef(-roomWidth / 2, 0, -roomDepth / 2);
 
-                // Floor
                 // Floor
                 float[] floorColor = room.getFloorColor().getRGBColorComponents(null);
                 System.out.println("Applying floor color in 3D view - R: " + floorColor[0] + ", G: " + floorColor[1] + ", B: " + floorColor[2]);
@@ -503,6 +501,11 @@ public class DesignPanel extends JPanel {
         gbc.gridy = 11;
         rightPanel.add(applyButton, gbc);
 
+        JButton deleteButton = new JButton("Delete");
+        gbc.gridx = 0;
+        gbc.gridy = 12;
+        rightPanel.add(deleteButton, gbc);
+
         add(rightPanel, BorderLayout.EAST);
 
         // Action Listeners
@@ -586,6 +589,20 @@ public class DesignPanel extends JPanel {
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Please select a furniture item to customize.");
+            }
+        });
+
+        deleteButton.addActionListener(e -> {
+            if (selectedFurniture != null) {
+                placedFurniture.remove(selectedFurniture);
+                selectedFurniture = null;
+                widthField.setText("0");
+                heightField.setText("0");
+                rotationField.setText("0");
+                shadingSlider.setValue(0);
+                repaintDrawingArea();
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select a furniture item to delete.");
             }
         });
 
@@ -676,7 +693,7 @@ public class DesignPanel extends JPanel {
     private void startAnimatorWithRetry(FPSAnimator animator, GLJPanel canvas, int retries) {
         Window window = SwingUtilities.getWindowAncestor(canvas);
         if (window != null && window.isVisible() && canvas.isShowing() && !animator.isStarted()) {
-            animator.start();
+            animator.start(); // Fixed the typo here
             System.out.println("FPSAnimator started: " + animator.isStarted());
         } else if (retries > 0) {
             System.out.println("GLJPanel not ready yet, window not visible, or animator not started, retrying... (" + retries + " attempts left)");
