@@ -47,6 +47,7 @@ public class DesignPanel extends JPanel {
     private JSlider shadingSlider;
     private JButton applyButton, deleteButton;
     private JButton toggleSidePanelsButton;
+    private List<JButton> furnitureButtons = new ArrayList<>();
     private GLU glu = new GLU();
 
     public DesignPanel(User user, FurnitureFactory furnitureFactory, Runnable onBackToDashboard) {
@@ -83,11 +84,16 @@ public class DesignPanel extends JPanel {
         leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setBorder(BorderFactory.createTitledBorder("Furniture Library"));
+        JLabel leftDisabledLabel = new JLabel("Panel disabled");
+        leftDisabledLabel.setForeground(Color.RED);
+        leftDisabledLabel.setVisible(false); // Initially hidden
+        leftPanel.add(leftDisabledLabel);
         List<Furniture> furnitureTypes = furnitureFactory.getFurnitureTypes();
         for (Furniture furniture : furnitureTypes) {
             JButton furnitureButton = new JButton(furniture.getDisplayName());
             furnitureButton.setAlignmentX(Component.CENTER_ALIGNMENT);
             furnitureButton.addActionListener(e -> {
+                if (is3DView) return; // Block adding in 3D mode
                 Furniture newFurniture = furnitureFactory.createFurniture(furniture.getType());
                 if (newFurniture != null) {
                     newFurniture.setX(50);
@@ -100,9 +106,11 @@ public class DesignPanel extends JPanel {
                     }
                 }
             });
+            furnitureButtons.add(furnitureButton); // 💡 Track the button
             leftPanel.add(furnitureButton);
             leftPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         }
+
         add(new JScrollPane(leftPanel), BorderLayout.WEST);
 
         // Center Panel (Drawing Area)
@@ -459,6 +467,15 @@ public class DesignPanel extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        JLabel rightDisabledLabel = new JLabel("Panel disabled");
+        rightDisabledLabel.setForeground(Color.RED);
+        rightDisabledLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        rightDisabledLabel.setVisible(false); // Initially hidden
+        gbc.gridx = 0;
+        gbc.gridy = 13;
+        rightPanel.add(rightDisabledLabel, gbc);
+
+
         JButton roomButton = new JButton("Edit Room Properties");
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -543,6 +560,13 @@ public class DesignPanel extends JPanel {
             shadingSlider.setEnabled(enableFurnitureControls);
             applyButton.setEnabled(enableFurnitureControls);
             deleteButton.setEnabled(enableFurnitureControls);
+            leftDisabledLabel.setVisible(is3DView);
+            rightDisabledLabel.setVisible(is3DView);
+            for (JButton btn : furnitureButtons) {
+                btn.setEnabled(!is3DView);
+            }
+
+
 
             try {
                 remove(is3DView ? drawingPanel2D : glPanelWrapper);
