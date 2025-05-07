@@ -116,7 +116,7 @@ public class DesignPanel extends JPanel {
         // Center Panel (Drawing Area)
         drawingPanel2D = new DrawingPanel();
         drawingPanel2D.setPreferredSize(new Dimension(600, 400));
-        drawingPanel2D.setBorder(BorderFactory.createTitledBorder("Design Area (2D)"));
+        drawingPanel2D.setBorder(BorderFactory.createTitledBorder("Design Area (2D) Top View of the Room"));
 
         // Set up 3D panel with JOGL
         GLProfile profile = GLProfile.get(GLProfile.GL2);
@@ -475,7 +475,6 @@ public class DesignPanel extends JPanel {
         gbc.gridy = 13;
         rightPanel.add(rightDisabledLabel, gbc);
 
-
         JButton roomButton = new JButton("Edit Room Properties");
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -491,22 +490,22 @@ public class DesignPanel extends JPanel {
         gbc.gridy = 2;
         rightPanel.add(colorButton, gbc);
 
-        JLabel widthLabel = new JLabel("Width (px):");
+        JLabel widthLabel = new JLabel("Width (mm):");
         gbc.gridx = 0;
         gbc.gridy = 3;
         rightPanel.add(widthLabel, gbc);
 
-        JTextField widthField = new JTextField("0", 5);
+        widthField = new JTextField("0", 5);
         gbc.gridx = 0;
         gbc.gridy = 4;
         rightPanel.add(widthField, gbc);
 
-        JLabel heightLabel = new JLabel("Height (px):");
+        JLabel heightLabel = new JLabel("Height (mm):");
         gbc.gridx = 0;
         gbc.gridy = 5;
         rightPanel.add(heightLabel, gbc);
 
-        JTextField heightField = new JTextField("0", 5);
+        heightField = new JTextField("0", 5);
         gbc.gridx = 0;
         gbc.gridy = 6;
         rightPanel.add(heightField, gbc);
@@ -516,7 +515,7 @@ public class DesignPanel extends JPanel {
         gbc.gridy = 7;
         rightPanel.add(rotationLabel, gbc);
 
-        JTextField rotationField = new JTextField("0", 5);
+        rotationField = new JTextField("0", 5);
         gbc.gridx = 0;
         gbc.gridy = 8;
         rightPanel.add(rotationField, gbc);
@@ -526,7 +525,7 @@ public class DesignPanel extends JPanel {
         gbc.gridy = 9;
         rightPanel.add(shadingLabel, gbc);
 
-        JSlider shadingSlider = new JSlider(0, 100, 0);
+        shadingSlider = new JSlider(0, 100, 0);
         shadingSlider.setMajorTickSpacing(25);
         shadingSlider.setPaintTicks(true);
         shadingSlider.setPaintLabels(true);
@@ -534,12 +533,12 @@ public class DesignPanel extends JPanel {
         gbc.gridy = 10;
         rightPanel.add(shadingSlider, gbc);
 
-        JButton applyButton = new JButton("Apply Changes");
+        applyButton = new JButton("Apply Changes");
         gbc.gridx = 0;
         gbc.gridy = 11;
         rightPanel.add(applyButton, gbc);
 
-        JButton deleteButton = new JButton("Delete");
+        deleteButton = new JButton("Delete");
         gbc.gridx = 0;
         gbc.gridy = 12;
         rightPanel.add(deleteButton, gbc);
@@ -565,8 +564,6 @@ public class DesignPanel extends JPanel {
             for (JButton btn : furnitureButtons) {
                 btn.setEnabled(!is3DView);
             }
-
-
 
             try {
                 remove(is3DView ? drawingPanel2D : glPanelWrapper);
@@ -595,7 +592,6 @@ public class DesignPanel extends JPanel {
                         JOptionPane.ERROR_MESSAGE);
             }
         });
-
 
         saveButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Save functionality will be implemented in Day 7!"));
 

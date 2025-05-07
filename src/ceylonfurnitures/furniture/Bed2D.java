@@ -6,8 +6,8 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 public class Bed2D implements Furniture2D {
-    private static final int BASE_WIDTH = 120; // 1200 mm (scaled down for display)
-    private static final int BASE_HEIGHT = 200; // 2000 mm (scaled down for display)
+    private static final int BASE_WIDTH = 700; // 1200 mm (scaled down for display)
+    private static final int BASE_HEIGHT = 1200; // 2000 mm (scaled down for display)
 
     @Override
     public void draw(Graphics2D g2d, Furniture furniture) {
