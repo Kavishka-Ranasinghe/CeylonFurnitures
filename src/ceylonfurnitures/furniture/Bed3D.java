@@ -10,11 +10,11 @@ public class Bed3D implements Furniture3D {
 
     @Override
     public void draw(GL2 gl, Furniture furniture) {
-        float x = furniture.getX() * 10.0f / 1000.0f;
-        float z = furniture.getY() * 10.0f / 1000.0f;
-        float width = furniture.getWidth() * 10.0f / 1000.0f;
-        float height = BASE_HEIGHT;
-        float depth = furniture.getHeight() * 10.0f / 1000.0f;
+        float x = furniture.getX() / 1000.0f; // Already scaled in DesignPanel
+        float z = furniture.getY() / 1000.0f; // Already scaled in DesignPanel
+        float width = furniture.getWidth() / 1000.0f; // Already scaled in DesignPanel
+        float height = BASE_HEIGHT; // Fixed height for bed base
+        float depth = furniture.getHeight() / 1000.0f; // Already scaled in DesignPanel
         float rotation = furniture.getRotation();
 
         Color color = furniture.getColor();
