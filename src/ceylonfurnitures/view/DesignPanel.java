@@ -267,7 +267,7 @@ public class DesignPanel extends JPanel {
                     float rotation = furniture.getRotation();
 
                     gl.glTranslatef(x, 0, z);
-                    gl.glRotatef(rotation, 0, 1, 0);
+                    gl.glRotatef(-rotation, 0, 1, 0); // Negate rotation to match 2D clockwise rotation
                     // Create a scaled furniture object for rendering
                     Furniture scaledFurniture = new Furniture(furniture.getType(), furniture.getDisplayName());
                     scaledFurniture.setX(0); // Position already handled by glTranslatef
@@ -284,7 +284,7 @@ public class DesignPanel extends JPanel {
                         gl.glPushMatrix();
                         float height = 0.5f; // Fixed height from Bed3D
                         gl.glTranslatef(x, 0, z);
-                        gl.glRotatef(rotation, 0, 1, 0);
+                        gl.glRotatef(-rotation, 0, 1, 0); // Apply same negated rotation for selection outline
                         gl.glScalef(width, height, depth);
 
                         gl.glDisable(GL2.GL_LIGHTING);
