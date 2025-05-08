@@ -557,7 +557,7 @@ public class DesignPanel extends JPanel {
         gbc.gridy = 11;
         rightPanel.add(applyButton, gbc);
 
-        deleteButton = new JButton("Delete");
+        deleteButton = new JButton("Delete Selected Item");
         gbc.gridx = 0;
         gbc.gridy = 12;
         rightPanel.add(deleteButton, gbc);
