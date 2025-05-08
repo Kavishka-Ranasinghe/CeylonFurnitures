@@ -1,5 +1,17 @@
 package ceylonfurnitures.controller;
 
+import ceylonfurnitures.furniture.Bed2D;
+import ceylonfurnitures.furniture.Bed3D;
+import ceylonfurnitures.furniture.Chair2D;
+import ceylonfurnitures.furniture.Chair3D;
+import ceylonfurnitures.furniture.Table2D;
+import ceylonfurnitures.furniture.Table3D;
+import ceylonfurnitures.furniture.Cupboard2D;
+import ceylonfurnitures.furniture.Cupboard3D;
+import ceylonfurnitures.furniture.Sofa2D;
+import ceylonfurnitures.furniture.Sofa3D;
+import ceylonfurnitures.furniture.Furniture2D;
+import ceylonfurnitures.furniture.Furniture3D;
 import ceylonfurnitures.furniture.*;
 import ceylonfurnitures.model.Furniture;
 
@@ -31,7 +43,7 @@ public class FurnitureFactory {
         furniture2DMap.put("bed", new Bed2D());
         furniture2DMap.put("table", new Table2D());
         furniture2DMap.put("chair", new Chair2D());
-        furniture2DMap.put("sofa", new DefaultFurniture2D());
+        furniture2DMap.put("sofa", new Sofa2D());
         furniture2DMap.put("cupboard", new Cupboard2D());
 
         // Map furniture types to their 3D rendering classes
@@ -39,7 +51,7 @@ public class FurnitureFactory {
         furniture3DMap.put("bed", new Bed3D());
         furniture3DMap.put("table", new Table3D());
         furniture3DMap.put("chair", new Chair3D());
-        furniture3DMap.put("sofa", new DefaultFurniture3D());
+        furniture3DMap.put("sofa", new Sofa3D());
         furniture3DMap.put("cupboard", new Cupboard3D());
     }
 
