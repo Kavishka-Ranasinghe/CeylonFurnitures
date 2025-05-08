@@ -8,7 +8,7 @@ import ceylonfurnitures.view.DashboardPanel;
 import ceylonfurnitures.view.DesignPanel;
 import ceylonfurnitures.view.LoginPanel;
 import ceylonfurnitures.view.SignupPanel;
-import ceylonfurnitures.view.SavedDesignsPanel; // Assume we'll create this next
+import ceylonfurnitures.view.SavedDesignsPanel;
 
 import javax.swing.*;
 import java.util.List;
@@ -89,8 +89,14 @@ public class Main {
         frame.getContentPane().removeAll();
         try {
             List<Design> designs = dbManager.readDesigns(user.getId());
-            SavedDesignsPanel savedDesignsPanel = new SavedDesignsPanel(user, designs, dbManager, furnitureFactory,
-                    () -> showDashboardPanel(user));
+            SavedDesignsPanel savedDesignsPanel = new SavedDesignsPanel(
+                    user,
+                    designs,
+                    dbManager,
+                    furnitureFactory,
+                    () -> showDashboardPanel(user),
+                    Main::showSavedDesignsPanel // Pass the refresh callback
+            );
             frame.add(savedDesignsPanel);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(frame, "Error loading saved designs: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

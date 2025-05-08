@@ -7,19 +7,23 @@ import ceylonfurnitures.model.User;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class SavedDesignsPanel extends JPanel {
     private User user;
     private DatabaseManager dbManager;
     private FurnitureFactory furnitureFactory;
     private Runnable onBackToDashboard;
+    private Consumer<User> onRefresh; // Callback to refresh the panel
 
-    public SavedDesignsPanel(User user, List<Design> designs, DatabaseManager dbManager, FurnitureFactory furnitureFactory, Runnable onBackToDashboard) {
+    public SavedDesignsPanel(User user, List<Design> designs, DatabaseManager dbManager, FurnitureFactory furnitureFactory, Runnable onBackToDashboard, Consumer<User> onRefresh) {
         this.user = user;
         this.dbManager = dbManager;
         this.furnitureFactory = furnitureFactory;
         this.onBackToDashboard = onBackToDashboard;
+        this.onRefresh = onRefresh;
 
         setLayout(new BorderLayout());
         setBackground(new Color(245, 245, 245)); // Light gray background
@@ -109,6 +113,26 @@ public class SavedDesignsPanel extends JPanel {
             buttonPanel.add(deleteButton);
             buttonPanel.add(viewButton);
             tile.add(buttonPanel, BorderLayout.SOUTH);
+
+            // Add delete functionality
+            deleteButton.addActionListener(e -> {
+                int confirm = JOptionPane.showConfirmDialog(
+                        this,
+                        "Are you sure you want to delete the design '" + design.getName() + "'?",
+                        "Confirm Delete",
+                        JOptionPane.YES_NO_OPTION
+                );
+                if (confirm == JOptionPane.YES_OPTION) {
+                    try {
+                        dbManager.deleteDesign(design.getId());
+                        JOptionPane.showMessageDialog(this, "Design deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        // Refresh the panel by reloading the designs
+                        onRefresh.accept(user);
+                    } catch (SQLException ex) {
+                        JOptionPane.showMessageDialog(this, "Error deleting design: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
 
             // Add hover effects for buttons
             deleteButton.addMouseListener(new java.awt.event.MouseAdapter() {
