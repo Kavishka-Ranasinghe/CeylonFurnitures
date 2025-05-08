@@ -266,6 +266,7 @@ public class DesignPanel extends JPanel {
                     float depth = furniture.getHeight() / MM_TO_OPENGL_SCALE;
                     float rotation = furniture.getRotation();
 
+                    // Translate to top-left corner before rotation
                     gl.glTranslatef(x, 0, z);
                     gl.glRotatef(-rotation, 0, 1, 0); // Negate rotation to match 2D clockwise rotation
                     // Create a scaled furniture object for rendering
@@ -283,8 +284,8 @@ public class DesignPanel extends JPanel {
                     if (furniture == selectedFurniture) {
                         gl.glPushMatrix();
                         float height = 0.5f; // Fixed height from Bed3D
-                        gl.glTranslatef(x, 0, z);
-                        gl.glRotatef(-rotation, 0, 1, 0); // Apply same negated rotation for selection outline
+                        gl.glTranslatef(x, 0, z); // Match top-left corner translation
+                        gl.glRotatef(-rotation, 0, 1, 0); // Apply same negated rotation
                         gl.glScalef(width, height, depth);
 
                         gl.glDisable(GL2.GL_LIGHTING);
@@ -734,14 +735,15 @@ public class DesignPanel extends JPanel {
         float z = (furniture.getY() / MM_TO_OPENGL_SCALE);
         float width = (furniture.getWidth() / MM_TO_OPENGL_SCALE);
         float depth = (furniture.getHeight() / MM_TO_OPENGL_SCALE);
+        float rotation = furniture.getRotation();
 
-        double rad = Math.toRadians(furniture.getRotation());
-        double sin = Math.abs(Math.sin(rad));
-        double cos = Math.abs(Math.cos(rad));
-        double newWidth = width * cos + depth * sin;
-        double newDepth = width * sin + depth * cos;
-        double newX = x - (newWidth - width) / 2;
-        double newZ = z - (newDepth - depth) / 2;
+        double rad = Math.toRadians(rotation);
+        double sin = Math.sin(rad);
+        double cos = Math.cos(rad);
+        double newWidth = Math.abs(width * cos) + Math.abs(depth * sin);
+        double newDepth = Math.abs(width * sin) + Math.abs(depth * cos);
+        double newX = x;
+        double newZ = z;
 
         return new Rectangle2D.Double(newX, newZ, newWidth, newDepth);
     }
