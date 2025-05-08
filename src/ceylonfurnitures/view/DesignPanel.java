@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 
 public class DesignPanel extends JPanel {
     private User user;
-    private DatabaseManager dbManager; // Added to interact with the database
+    private DatabaseManager dbManager;
     private FurnitureFactory furnitureFactory;
     private Runnable onBackToDashboard;
     private Room room;
@@ -45,8 +45,8 @@ public class DesignPanel extends JPanel {
     private int lastX;
     private int lastY;
     private FPSAnimator animator;
-    private JPanel leftPanel;         // Furniture panel
-    private JPanel rightPanel;        // Customization panel
+    private JPanel leftPanel;
+    private JPanel rightPanel;
     private JButton colorButton;
     private JTextField widthField, heightField, rotationField;
     private JSlider shadingSlider;
@@ -54,20 +54,34 @@ public class DesignPanel extends JPanel {
     private JButton toggleSidePanelsButton;
     private List<JButton> furnitureButtons = new ArrayList<>();
     private GLU glu = new GLU();
-    private static final float PIXEL_TO_MM_SCALE = 10.0f; // 1 pixel = 10 mm in 2D view
-    private static final float MM_TO_OPENGL_SCALE = 1000.0f; // 1000 mm = 1 OpenGL unit
+    private static final float PIXEL_TO_MM_SCALE = 10.0f;
+    private static final float MM_TO_OPENGL_SCALE = 1000.0f;
+    private JLabel titleLabel;
+    private Design currentDesign;
 
     public DesignPanel(User user, DatabaseManager dbManager, FurnitureFactory furnitureFactory, Runnable onBackToDashboard) {
+        this(user, dbManager, furnitureFactory, onBackToDashboard, null);
+    }
+
+    public DesignPanel(User user, DatabaseManager dbManager, FurnitureFactory furnitureFactory, Runnable onBackToDashboard, Design design) {
         this.user = user;
-        this.dbManager = dbManager; // Initialize DatabaseManager
+        this.dbManager = dbManager;
         this.furnitureFactory = furnitureFactory;
         this.onBackToDashboard = onBackToDashboard;
         this.room = new Room(5000, 3000, 2700, Color.LIGHT_GRAY, new Color(180, 140, 100));
         this.placedFurniture = new ArrayList<>();
         this.selectedFurniture = null;
         this.is3DView = false;
+        this.currentDesign = design;
 
         setLayout(new BorderLayout());
+
+        // Title Label
+        titleLabel = new JLabel(design != null ? design.getName() : "not saved");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        add(titleLabel, BorderLayout.NORTH);
 
         // Top Bar
         JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -94,14 +108,14 @@ public class DesignPanel extends JPanel {
         leftPanel.setBorder(BorderFactory.createTitledBorder("Furniture Library"));
         JLabel leftDisabledLabel = new JLabel("Panel disabled");
         leftDisabledLabel.setForeground(Color.RED);
-        leftDisabledLabel.setVisible(false); // Initially hidden
+        leftDisabledLabel.setVisible(false);
         leftPanel.add(leftDisabledLabel);
         List<Furniture> furnitureTypes = furnitureFactory.getFurnitureTypes();
         for (Furniture furniture : furnitureTypes) {
             JButton furnitureButton = new JButton(furniture.getDisplayName());
             furnitureButton.setAlignmentX(Component.CENTER_ALIGNMENT);
             furnitureButton.addActionListener(e -> {
-                if (is3DView) return; // Block adding in 3D mode
+                if (is3DView) return;
                 Furniture newFurniture = furnitureFactory.createFurniture(furniture.getType());
                 if (newFurniture != null) {
                     newFurniture.setX((int) (50 * PIXEL_TO_MM_SCALE));
@@ -172,18 +186,14 @@ public class DesignPanel extends JPanel {
                 gl.glColorMaterial(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE);
                 gl.glEnable(GL2.GL_CULL_FACE);
                 gl.glCullFace(GL2.GL_BACK);
-
-                System.out.println("GLEventListener.init called");
             }
 
             @Override
             public void dispose(GLAutoDrawable drawable) {
-                System.out.println("GLEventListener.dispose called");
             }
 
             @Override
             public void display(GLAutoDrawable drawable) {
-                System.out.println("GLEventListener.display called");
                 GL2 gl = drawable.getGL().getGL2();
                 gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
@@ -192,16 +202,13 @@ public class DesignPanel extends JPanel {
                 gl.glRotatef(cameraAngleY, 1, 0, 0);
                 gl.glRotatef(cameraAngleX, 0, 1, 0);
 
-                // Draw room
                 float roomWidth = room.getWidth() / MM_TO_OPENGL_SCALE;
                 float roomDepth = room.getDepth() / MM_TO_OPENGL_SCALE;
                 float roomHeight = room.getHeight() / MM_TO_OPENGL_SCALE;
 
                 gl.glTranslatef(-roomWidth / 2, 0, -roomDepth / 2);
 
-                // Floor
                 float[] floorColor = room.getFloorColor().getRGBColorComponents(null);
-                System.out.println("Applying floor color in 3D view - R: " + floorColor[0] + ", G: " + floorColor[1] + ", B: " + floorColor[2]);
                 float[] floorAmbientDiffuse = {floorColor[0], floorColor[1], floorColor[2], 1.0f};
                 gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE, floorAmbientDiffuse, 0);
                 gl.glColor3f(floorColor[0], floorColor[1], floorColor[2]);
@@ -217,9 +224,7 @@ public class DesignPanel extends JPanel {
 
                 gl.glEnable(GL2.GL_CULL_FACE);
 
-                // Walls
                 float[] wallColor = room.getWallColor().getRGBColorComponents(null);
-                System.out.println("Applying wall color in 3D view - R: " + wallColor[0] + ", G: " + wallColor[1] + ", B: " + wallColor[2]);
                 float[] wallAmbientDiffuse = {wallColor[0], wallColor[1], wallColor[2], 1.0f};
                 gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE, wallAmbientDiffuse, 0);
                 gl.glColor3f(wallColor[0], wallColor[1], wallColor[2]);
@@ -256,14 +261,12 @@ public class DesignPanel extends JPanel {
                 gl.glVertex3f(roomWidth, roomHeight, 0);
                 gl.glEnd();
 
-                // Draw furniture
                 for (Furniture furniture : placedFurniture) {
                     Furniture3D renderer = furnitureFactory.getFurniture3D(furniture.getType());
                     float[] furnitureColor = furniture.getColor().getRGBColorComponents(null);
                     float[] furnitureAmbientDiffuse = {furnitureColor[0], furnitureColor[1], furnitureColor[2], 1.0f};
                     gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE, furnitureAmbientDiffuse, 0);
 
-                    // Push matrix, apply transformations, and draw furniture
                     gl.glPushMatrix();
                     float x = furniture.getX() / MM_TO_OPENGL_SCALE;
                     float z = furniture.getY() / MM_TO_OPENGL_SCALE;
@@ -271,12 +274,10 @@ public class DesignPanel extends JPanel {
                     float depth = furniture.getHeight() / MM_TO_OPENGL_SCALE;
                     float rotation = furniture.getRotation();
 
-                    // Translate to top-left corner before rotation
                     gl.glTranslatef(x, 0, z);
-                    gl.glRotatef(-rotation, 0, 1, 0); // Negate rotation to match 2D clockwise rotation
-                    // Create a scaled furniture object for rendering
+                    gl.glRotatef(-rotation, 0, 1, 0);
                     Furniture scaledFurniture = new Furniture(furniture.getType(), furniture.getDisplayName());
-                    scaledFurniture.setX(0); // Position already handled by glTranslatef
+                    scaledFurniture.setX(0);
                     scaledFurniture.setY(0);
                     scaledFurniture.setWidth((int) (furniture.getWidth() / MM_TO_OPENGL_SCALE * MM_TO_OPENGL_SCALE));
                     scaledFurniture.setHeight((int) (furniture.getHeight() / MM_TO_OPENGL_SCALE * MM_TO_OPENGL_SCALE));
@@ -288,9 +289,9 @@ public class DesignPanel extends JPanel {
 
                     if (furniture == selectedFurniture) {
                         gl.glPushMatrix();
-                        float height = 0.5f; // Fixed height from Bed3D
-                        gl.glTranslatef(x, 0, z); // Match top-left corner translation
-                        gl.glRotatef(-rotation, 0, 1, 0); // Apply same negated rotation
+                        float height = 0.5f;
+                        gl.glTranslatef(x, 0, z);
+                        gl.glRotatef(-rotation, 0, 1, 0);
                         gl.glScalef(width, height, depth);
 
                         gl.glDisable(GL2.GL_LIGHTING);
@@ -360,7 +361,6 @@ public class DesignPanel extends JPanel {
                 glu.gluPerspective(45.0f, aspect, 0.1f, 50.0f);
 
                 gl.glMatrixMode(GL2.GL_MODELVIEW);
-                System.out.println("GLEventListener.reshape called");
             }
         });
 
@@ -564,6 +564,11 @@ public class DesignPanel extends JPanel {
 
         add(rightPanel, BorderLayout.EAST);
 
+        // Load design if provided
+        if (design != null) {
+            loadDesign(design);
+        }
+
         // Action Listeners
         backButton.addActionListener(e -> onBackToDashboard.run());
         toggleViewButton.addActionListener(e -> {
@@ -589,11 +594,9 @@ public class DesignPanel extends JPanel {
                 revalidate();
                 repaint();
                 if (is3DView) {
-                    System.out.println("Toggling to 3D view, starting FPSAnimator");
                     startAnimatorWithRetry(animator, drawingPanel3D, 5);
                     drawingPanel3D.repaint();
                 } else {
-                    System.out.println("Toggling to 2D view, stopping FPSAnimator");
                     if (animator.isStarted()) {
                         animator.stop();
                     }
@@ -623,21 +626,6 @@ public class DesignPanel extends JPanel {
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Please select a furniture item to customize.");
-            }
-        });
-
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (selectedFurniture != null) {
-                    widthField.setText(String.valueOf(selectedFurniture.getWidth()));
-                    heightField.setText(String.valueOf(selectedFurniture.getHeight()));
-                    rotationField.setText(String.valueOf(selectedFurniture.getRotation()));
-                } else {
-                    widthField.setText("0");
-                    heightField.setText("0");
-                    rotationField.setText("0");
-                }
             }
         });
 
@@ -685,16 +673,74 @@ public class DesignPanel extends JPanel {
         });
     }
 
-    // Method to save the current design
+    private void loadDesign(Design design) {
+        try {
+            // Parse room dimensions (width, depth, height)
+            String[] dimensions = design.getRoomDimensions().split(",");
+            if (dimensions.length == 3) {
+                room = new Room(
+                        Integer.parseInt(dimensions[0]),
+                        Integer.parseInt(dimensions[1]),
+                        Integer.parseInt(dimensions[2]),
+                        Color.LIGHT_GRAY,
+                        new Color(180, 140, 100)
+                );
+            }
+
+            // Parse room colors (wall: R,G,B,floor: R,G,B)
+            String[] colors = design.getRoomColors().split(",");
+            if (colors.length == 6) {
+                Color wallColor = new Color(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2]));
+                Color floorColor = new Color(Integer.parseInt(colors[3]), Integer.parseInt(colors[4]), Integer.parseInt(colors[5]));
+                room.setWallColor(wallColor);
+                room.setFloorColor(floorColor);
+            }
+
+            // Parse furniture data
+            placedFurniture.clear();
+            String[] furnitureItems = design.getFurniture().split("\\|");
+            for (String item : furnitureItems) {
+                if (!item.isEmpty()) {
+                    String[] parts = item.split(",");
+                    if (parts.length == 10) {
+                        Furniture furniture = furnitureFactory.createFurniture(parts[0]);
+                        if (furniture != null) {
+                            furniture.setX(Integer.parseInt(parts[1]));
+                            furniture.setY(Integer.parseInt(parts[2]));
+                            furniture.setWidth(Integer.parseInt(parts[3]));
+                            furniture.setHeight(Integer.parseInt(parts[4]));
+                            furniture.setRotation(Float.parseFloat(parts[5]));
+                            furniture.setColor(new Color(Integer.parseInt(parts[6]), Integer.parseInt(parts[7]), Integer.parseInt(parts[8])));
+                            furniture.setShading(Float.parseFloat(parts[9]));
+                            placedFurniture.add(furniture);
+                        }
+                    }
+                }
+            }
+
+            repaintDrawingArea();
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            JOptionPane.showMessageDialog(this, "Error loading design data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void saveDesign() {
-        // Prompt user for design name
-        String designName = JOptionPane.showInputDialog(this, "Enter a name for your design:", "Save Design", JOptionPane.PLAIN_MESSAGE);
+        String designName = JOptionPane.showInputDialog(this, "Enter a name for your design:", currentDesign != null ? currentDesign.getName() : "not saved", JOptionPane.PLAIN_MESSAGE);
         if (designName == null || designName.trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Design name cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
+            // Check if the name already exists for this user
+            List<Design> existingDesigns = dbManager.readDesigns(user.getId());
+            for (Design existingDesign : existingDesigns) {
+                if (existingDesign.getName().equals(designName.trim()) && (currentDesign == null || existingDesign.getId() != currentDesign.getId())) {
+                    JOptionPane.showMessageDialog(this, "Choose another name, there is a project with the same name.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
             // Serialize room dimensions
             String roomDimensions = room.getWidth() + "," + room.getDepth() + "," + room.getHeight();
 
@@ -724,12 +770,24 @@ public class DesignPanel extends JPanel {
                 }
             }
 
-            // Save to database
-            int designId = dbManager.createDesign(user.getId(), designName.trim(), roomDimensions, roomColors, furnitureData.toString());
-            if (designId != -1) {
-                JOptionPane.showMessageDialog(this, "Design saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Save or update design
+            if (currentDesign == null) {
+                int designId = dbManager.createDesign(user.getId(), designName.trim(), roomDimensions, roomColors, furnitureData.toString());
+                if (designId != -1) {
+                    currentDesign = new Design(designId, user.getId(), designName.trim(), roomDimensions, roomColors, furnitureData.toString());
+                    titleLabel.setText(designName.trim());
+                    JOptionPane.showMessageDialog(this, "Design saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to save design.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             } else {
-                JOptionPane.showMessageDialog(this, "Failed to save design.", "Error", JOptionPane.ERROR_MESSAGE);
+                dbManager.updateDesign(currentDesign.getId(), designName.trim(), roomDimensions, roomColors, furnitureData.toString());
+                currentDesign.setName(designName.trim());
+                currentDesign.setRoomDimensions(roomDimensions);
+                currentDesign.setRoomColors(roomColors);
+                currentDesign.setFurniture(furnitureData.toString());
+                titleLabel.setText(designName.trim());
+                JOptionPane.showMessageDialog(this, "Design updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error saving design: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
@@ -790,7 +848,6 @@ public class DesignPanel extends JPanel {
         float depth = furniture.getHeight() / MM_TO_OPENGL_SCALE;
         float rotation = furniture.getRotation();
 
-        // Calculate the rotated bounding box with position adjustment like in 2D
         double rad = Math.toRadians(rotation);
         double sin = Math.abs(Math.sin(rad));
         double cos = Math.abs(Math.cos(rad));
@@ -806,15 +863,11 @@ public class DesignPanel extends JPanel {
         Window window = SwingUtilities.getWindowAncestor(canvas);
         if (window != null && window.isVisible() && canvas.isShowing() && !animator.isStarted()) {
             animator.start();
-            System.out.println("FPSAnimator started: " + animator.isStarted());
         } else if (retries > 0) {
-            System.out.println("GLJPanel not ready yet, window not visible, or animator not started, retrying... (" + retries + " attempts left)");
             new Timer(100, e -> {
                 startAnimatorWithRetry(animator, canvas, retries - 1);
                 ((Timer) e.getSource()).stop();
             }).start();
-        } else {
-            System.out.println("Failed to start FPSAnimator after retries.");
         }
     }
 
@@ -917,7 +970,6 @@ public class DesignPanel extends JPanel {
             colorButton.setPreferredSize(new Dimension(30, 30));
             colorButton.addActionListener(e -> {
                 room.setFloorColor(color);
-                System.out.println("Floor color set to - R: " + color.getRed() + ", G: " + color.getGreen() + ", B: " + color.getBlue());
                 repaintDrawingArea();
             });
             floorColorPanel.add(colorButton);
@@ -927,7 +979,6 @@ public class DesignPanel extends JPanel {
             Color customColor = JColorChooser.showDialog(roomDialog, "Choose Custom Floor Color", room.getFloorColor());
             if (customColor != null) {
                 room.setFloorColor(customColor);
-                System.out.println("Custom floor color set to - R: " + customColor.getRed() + ", G: " + customColor.getGreen() + ", B: " + customColor.getBlue());
                 repaintDrawingArea();
             }
         });
@@ -968,10 +1019,8 @@ public class DesignPanel extends JPanel {
 
     private void repaintDrawingArea() {
         if (is3DView) {
-            System.out.println("Repainting 3D view");
             drawingPanel3D.repaint();
         } else {
-            System.out.println("Repainting 2D view");
             drawingPanel2D.repaint();
         }
     }
@@ -1012,9 +1061,13 @@ public class DesignPanel extends JPanel {
                             selectedFurniture = furniture;
                             dragStart = e.getPoint();
                             if (selectedFurniture != null) {
-                                widthField.setText(String.valueOf(selectedFurniture.getWidth()));
-                                heightField.setText(String.valueOf(selectedFurniture.getHeight()));
-                                rotationField.setText(String.valueOf(selectedFurniture.getRotation()));
+                                DesignPanel.this.widthField.setText(String.valueOf(selectedFurniture.getWidth()));
+                                DesignPanel.this.heightField.setText(String.valueOf(selectedFurniture.getHeight()));
+                                DesignPanel.this.rotationField.setText(String.valueOf(selectedFurniture.getRotation()));
+                            } else {
+                                DesignPanel.this.widthField.setText("0");
+                                DesignPanel.this.heightField.setText("0");
+                                DesignPanel.this.rotationField.setText("0");
                             }
                             break;
                         }
@@ -1074,9 +1127,6 @@ public class DesignPanel extends JPanel {
             int roomDepth = room.getDepth() / 10;
 
             g2d.setColor(room.getFloorColor());
-            System.out.println("Applying floor color in 2D view - R: " + room.getFloorColor().getRed() +
-                    ", G: " + room.getFloorColor().getGreen() +
-                    ", B: " + room.getFloorColor().getBlue());
             g2d.fillRect(0, 0, roomWidth, roomDepth);
 
             g2d.setColor(Color.BLACK);

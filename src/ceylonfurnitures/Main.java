@@ -85,6 +85,14 @@ public class Main {
         frame.repaint();
     }
 
+    public static void showDesignPanel(User user, Design design) {
+        frame.getContentPane().removeAll();
+        DesignPanel designPanel = new DesignPanel(user, dbManager, furnitureFactory, () -> showDashboardPanel(user), design);
+        frame.add(designPanel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
     private static void showSavedDesignsPanel(User user) {
         frame.getContentPane().removeAll();
         try {

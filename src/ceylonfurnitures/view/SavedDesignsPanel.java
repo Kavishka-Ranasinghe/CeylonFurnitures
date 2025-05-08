@@ -1,5 +1,6 @@
 package ceylonfurnitures.view;
 
+import ceylonfurnitures.Main; // Added import for Main class
 import ceylonfurnitures.controller.FurnitureFactory;
 import ceylonfurnitures.db.DatabaseManager;
 import ceylonfurnitures.model.Design;
@@ -95,7 +96,7 @@ public class SavedDesignsPanel extends JPanel {
 
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 3)); // Reduced gaps
             JButton deleteButton = new JButton("Delete");
-            JButton viewButton = new JButton("View");
+            JButton viewButton = new JButton("Edit");
             deleteButton.setFont(new Font("Segoe UI", Font.PLAIN, 10)); // Smaller font
             viewButton.setFont(new Font("Segoe UI", Font.PLAIN, 10)); // Smaller font
             deleteButton.setBackground(new Color(220, 53, 69)); // Red for delete
@@ -132,6 +133,11 @@ public class SavedDesignsPanel extends JPanel {
                         JOptionPane.showMessageDialog(this, "Error deleting design: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
+            });
+
+            // Add view functionality
+            viewButton.addActionListener(e -> {
+                Main.showDesignPanel(user, design); // Fully qualified call to Main's method
             });
 
             // Add hover effects for buttons

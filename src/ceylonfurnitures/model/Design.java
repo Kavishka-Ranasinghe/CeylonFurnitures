@@ -24,4 +24,10 @@ public class Design {
     public String getRoomDimensions() { return roomDimensions; }
     public String getRoomColors() { return roomColors; }
     public String getFurniture() { return furniture; }
+
+    // Setters
+    public void setName(String name) { this.name = name; }
+    public void setRoomDimensions(String roomDimensions) { this.roomDimensions = roomDimensions; }
+    public void setRoomColors(String roomColors) { this.roomColors = roomColors; }
+    public void setFurniture(String furniture) { this.furniture = furniture; }
 }
