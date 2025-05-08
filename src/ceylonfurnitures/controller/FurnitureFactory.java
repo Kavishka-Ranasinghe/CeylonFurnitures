@@ -1,13 +1,6 @@
 package ceylonfurnitures.controller;
 
-import ceylonfurnitures.furniture.Bed2D;
-import ceylonfurnitures.furniture.Bed3D;
-import ceylonfurnitures.furniture.Chair2D;
-import ceylonfurnitures.furniture.Chair3D;
-import ceylonfurnitures.furniture.Table2D;
-import ceylonfurnitures.furniture.Table3D;
-import ceylonfurnitures.furniture.Furniture2D;
-import ceylonfurnitures.furniture.Furniture3D;
+import ceylonfurnitures.furniture.*;
 import ceylonfurnitures.model.Furniture;
 
 import java.awt.Color;
@@ -39,6 +32,7 @@ public class FurnitureFactory {
         furniture2DMap.put("table", new Table2D());
         furniture2DMap.put("chair", new Chair2D());
         furniture2DMap.put("sofa", new DefaultFurniture2D());
+        furniture2DMap.put("cupboard", new Cupboard2D());
 
         // Map furniture types to their 3D rendering classes
         furniture3DMap = new HashMap<>();
@@ -46,6 +40,7 @@ public class FurnitureFactory {
         furniture3DMap.put("table", new Table3D());
         furniture3DMap.put("chair", new Chair3D());
         furniture3DMap.put("sofa", new DefaultFurniture3D());
+        furniture3DMap.put("cupboard", new Cupboard3D());
     }
 
     public List<Furniture> getFurnitureTypes() {
