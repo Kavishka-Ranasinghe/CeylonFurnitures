@@ -29,7 +29,7 @@ public class Main {
             // Create the main window
             frame = new JFrame("Ceylon Furnitures");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(800, 600);
+            frame.setSize(1000, 700);
             frame.setLocationRelativeTo(null);
 
             // Show the login panel by default

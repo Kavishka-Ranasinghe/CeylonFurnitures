@@ -5,13 +5,12 @@ import com.jogamp.opengl.GL2;
 
 import java.awt.Color;
 
-public class Bed3D implements Furniture3D {
+public class Chair3D implements Furniture3D {
     private static final float BASE_HEIGHT = 0.5f;
 
     @Override
     public void draw(GL2 gl, Furniture furniture) {
         float width = furniture.getWidth() / 1000.0f;
-        float height = BASE_HEIGHT;
         float depth = furniture.getHeight() / 1000.0f;
 
         Color color = furniture.getColor();
@@ -23,28 +22,48 @@ public class Bed3D implements Furniture3D {
 
         gl.glPushMatrix();
 
-        // ==== Bed Base ====
+        // ==== Taller Legs ====
+        float legThickness = 0.05f;
+        float legHeight = 0.35f;  // Increased leg height
+
+        gl.glColor3f(0.2f, 0.2f, 0.2f); // dark gray legs
+        // Front left
+        drawCuboid(gl, 0f, 0f, 0f, legThickness, legHeight, legThickness);
+        // Front right
+        drawCuboid(gl, width - legThickness, 0f, 0f, width, legHeight, legThickness);
+        // Back left
+        drawCuboid(gl, 0f, 0f, depth - legThickness, legThickness, legHeight, depth);
+        // Back right
+        drawCuboid(gl, width - legThickness, 0f, depth - legThickness, width, legHeight, depth);
+
+        // ==== Seat Base (Raised due to leg height) ====
         gl.glColor3f(r, g, b);
-        drawCuboid(gl, 0f, 0f, 0f, width, 0.15f, depth);
+        drawCuboid(gl, 0f, legHeight, 0f, width, legHeight + 0.1f, depth); // thinner seat base
 
-        // ==== Mattress ====
+        // ==== Seat Cushion (Slightly thinner) ====
         gl.glColor3f(Math.min(r * 1.1f, 1.0f), Math.min(g * 1.1f, 1.0f), Math.min(b * 1.1f, 1.0f));
-        drawCuboid(gl, 0.04f, 0.15f, 0.04f, width - 0.04f, 0.35f, depth - 0.04f);
+        drawCuboid(gl, 0.04f, legHeight + 0.1f, 0.04f, width - 0.04f, legHeight + 0.18f, depth - 0.04f);
 
-        // ==== Quilt-Like Layer on Mattress ====
-        gl.glColor3f(Math.min(r * 1.2f, 1.0f), Math.min(g * 1.2f, 1.0f), Math.min(b * 1.2f, 1.0f));
-        for (float z = 0.05f; z < depth - 0.05f; z += 0.1f) {
-            drawCuboid(gl, 0.05f, 0.35f, z, width - 0.05f, 0.36f, z + 0.05f);
+        // ==== Stitching Stripes ====
+        gl.glColor3f(1.0f, 1.0f, 1.0f);
+        for (float z = 0.06f; z < depth - 0.06f; z += 0.08f) {
+            drawCuboid(gl, 0.06f, legHeight + 0.18f, z, width - 0.06f, legHeight + 0.185f, z + 0.015f);
         }
 
-        // ==== Headboard ====
+        // ==== Backrest ====
         gl.glColor3f(r * 0.6f, g * 0.6f, b * 0.6f);
-        drawCuboid(gl, 0f, 0.15f, 0f, width, 0.9f, -0.06f);
+        drawCuboid(gl, 0f, legHeight + 0.1f, 0f, width, legHeight + 0.9f, -0.05f);
 
-        // ==== Pillows ====
-        gl.glColor3f(1.0f, 1.0f, 1.0f);
-        drawCuboid(gl, width * 0.08f, 0.36f, 0.08f, width * 0.38f, 0.43f, 0.22f);
-        drawCuboid(gl, width * 0.62f, 0.36f, 0.08f, width * 0.92f, 0.43f, 0.22f);
+        // ==== Armrests ====
+        float armHeight = 0.25f;
+        float armTop = legHeight + 0.18f;
+        float armWidth = 0.05f;
+
+        gl.glColor3f(r * 0.8f, g * 0.8f, b * 0.8f);
+        // Left armrest
+        drawCuboid(gl, 0f, legHeight + 0.18f, 0.02f, armWidth, armTop + armHeight, depth - 0.02f);
+        // Right armrest
+        drawCuboid(gl, width - armWidth, legHeight + 0.18f, 0.02f, width, armTop + armHeight, depth - 0.02f);
 
         gl.glPopMatrix();
     }
@@ -92,7 +111,7 @@ public class Bed3D implements Furniture3D {
 
     @Override
     public float getDefaultWidth() {
-        return 1.2f;
+        return 0.6f;
     }
 
     @Override
@@ -102,6 +121,6 @@ public class Bed3D implements Furniture3D {
 
     @Override
     public float getDefaultDepth() {
-        return 2.0f;
+        return 0.6f;
     }
 }
