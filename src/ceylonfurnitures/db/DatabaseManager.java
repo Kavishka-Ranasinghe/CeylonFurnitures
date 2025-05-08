@@ -1,6 +1,7 @@
 package ceylonfurnitures.db;
 
 import ceylonfurnitures.model.User;
+import ceylonfurnitures.model.Design;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -193,31 +194,5 @@ public class DatabaseManager {
             System.err.println("Error connecting to database: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    // Temporary Design class (we'll move this to model package later)
-    public static class Design {
-        private int id;
-        private int userId;
-        private String name;
-        private String roomDimensions;
-        private String roomColors;
-        private String furniture;
-
-        public Design(int id, int userId, String name, String roomDimensions, String roomColors, String furniture) {
-            this.id = id;
-            this.userId = userId;
-            this.name = name;
-            this.roomDimensions = roomDimensions;
-            this.roomColors = roomColors;
-            this.furniture = furniture;
-        }
-
-        public int getId() { return id; }
-        public int getUserId() { return userId; }
-        public String getName() { return name; }
-        public String getRoomDimensions() { return roomDimensions; }
-        public String getRoomColors() { return roomColors; }
-        public String getFurniture() { return furniture; }
     }
 }

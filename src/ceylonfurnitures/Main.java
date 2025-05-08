@@ -77,7 +77,7 @@ public class Main {
 
     private static void showDesignPanel(User user) {
         frame.getContentPane().removeAll();
-        DesignPanel designPanel = new DesignPanel(user, furnitureFactory, () -> showDashboardPanel(user));
+        DesignPanel designPanel = new DesignPanel(user, dbManager, furnitureFactory, () -> showDashboardPanel(user));
         frame.add(designPanel);
         frame.revalidate();
         frame.repaint();

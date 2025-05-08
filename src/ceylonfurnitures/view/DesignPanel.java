@@ -1,8 +1,10 @@
 package ceylonfurnitures.view;
 
 import ceylonfurnitures.controller.FurnitureFactory;
+import ceylonfurnitures.db.DatabaseManager;
 import ceylonfurnitures.furniture.Furniture2D;
 import ceylonfurnitures.furniture.Furniture3D;
+import ceylonfurnitures.model.Design;
 import ceylonfurnitures.model.Furniture;
 import ceylonfurnitures.model.Room;
 import ceylonfurnitures.model.User;
@@ -14,6 +16,7 @@ import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.SQLException;
 
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLJPanel;
@@ -24,6 +27,7 @@ import java.nio.ByteBuffer;
 
 public class DesignPanel extends JPanel {
     private User user;
+    private DatabaseManager dbManager; // Added to interact with the database
     private FurnitureFactory furnitureFactory;
     private Runnable onBackToDashboard;
     private Room room;
@@ -53,8 +57,9 @@ public class DesignPanel extends JPanel {
     private static final float PIXEL_TO_MM_SCALE = 10.0f; // 1 pixel = 10 mm in 2D view
     private static final float MM_TO_OPENGL_SCALE = 1000.0f; // 1000 mm = 1 OpenGL unit
 
-    public DesignPanel(User user, FurnitureFactory furnitureFactory, Runnable onBackToDashboard) {
+    public DesignPanel(User user, DatabaseManager dbManager, FurnitureFactory furnitureFactory, Runnable onBackToDashboard) {
         this.user = user;
+        this.dbManager = dbManager; // Initialize DatabaseManager
         this.furnitureFactory = furnitureFactory;
         this.onBackToDashboard = onBackToDashboard;
         this.room = new Room(5000, 3000, 2700, Color.LIGHT_GRAY, new Color(180, 140, 100));
@@ -606,7 +611,7 @@ public class DesignPanel extends JPanel {
             }
         });
 
-        saveButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Save functionality will be implemented in Day 7!"));
+        saveButton.addActionListener(e -> saveDesign());
 
         roomButton.addActionListener(e -> showRoomDialog());
         colorButton.addActionListener(e -> {
@@ -680,6 +685,57 @@ public class DesignPanel extends JPanel {
         });
     }
 
+    // Method to save the current design
+    private void saveDesign() {
+        // Prompt user for design name
+        String designName = JOptionPane.showInputDialog(this, "Enter a name for your design:", "Save Design", JOptionPane.PLAIN_MESSAGE);
+        if (designName == null || designName.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Design name cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            // Serialize room dimensions
+            String roomDimensions = room.getWidth() + "," + room.getDepth() + "," + room.getHeight();
+
+            // Serialize room colors (wall and floor)
+            Color wallColor = room.getWallColor();
+            Color floorColor = room.getFloorColor();
+            String roomColors = wallColor.getRed() + "," + wallColor.getGreen() + "," + wallColor.getBlue() + "," +
+                    floorColor.getRed() + "," + floorColor.getGreen() + "," + floorColor.getBlue();
+
+            // Serialize furniture data
+            StringBuilder furnitureData = new StringBuilder();
+            for (int i = 0; i < placedFurniture.size(); i++) {
+                Furniture furniture = placedFurniture.get(i);
+                Color color = furniture.getColor();
+                furnitureData.append(furniture.getType()).append(",")
+                        .append(furniture.getX()).append(",")
+                        .append(furniture.getY()).append(",")
+                        .append(furniture.getWidth()).append(",")
+                        .append(furniture.getHeight()).append(",")
+                        .append(furniture.getRotation()).append(",")
+                        .append(color.getRed()).append(",")
+                        .append(color.getGreen()).append(",")
+                        .append(color.getBlue()).append(",")
+                        .append(furniture.getShading());
+                if (i < placedFurniture.size() - 1) {
+                    furnitureData.append("|");
+                }
+            }
+
+            // Save to database
+            int designId = dbManager.createDesign(user.getId(), designName.trim(), roomDimensions, roomColors, furnitureData.toString());
+            if (designId != -1) {
+                JOptionPane.showMessageDialog(this, "Design saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to save design.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error saving design: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private static class Point3D {
         double x, y, z;
 
@@ -740,7 +796,6 @@ public class DesignPanel extends JPanel {
         double cos = Math.abs(Math.cos(rad));
         double newWidth = width * cos + depth * sin;
         double newDepth = width * sin + depth * cos;
-        // Adjust the top-left corner to account for rotation, similar to getRotatedBounds
         double newX = x + (width - newWidth) / 2;
         double newZ = z + (depth - newDepth) / 2;
 
