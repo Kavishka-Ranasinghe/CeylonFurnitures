@@ -88,12 +88,7 @@ public class DashboardPanel extends JPanel {
         savedDesignButton.addActionListener(e -> onShowSavedDesigns.run());
         actionPanel.add(savedDesignButton);
 
-        // Load Design Button
-        JButton loadDesignButton = createModernButton("Load Design", new Color(0, 123, 255), Color.WHITE);
-        loadDesignButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Load Design functionality will be implemented in Day 7!");
-        });
-        actionPanel.add(loadDesignButton);
+
 
         // Profile Button
         JButton profileButton = createModernButton("Profile", new Color(0, 123, 255), Color.WHITE);

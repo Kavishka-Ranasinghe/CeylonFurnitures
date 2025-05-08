@@ -3,18 +3,20 @@ package ceylonfurnitures;
 import ceylonfurnitures.controller.FurnitureFactory;
 import ceylonfurnitures.db.DatabaseManager;
 import ceylonfurnitures.model.User;
+import ceylonfurnitures.model.Design;
 import ceylonfurnitures.view.DashboardPanel;
 import ceylonfurnitures.view.DesignPanel;
 import ceylonfurnitures.view.LoginPanel;
 import ceylonfurnitures.view.SignupPanel;
+import ceylonfurnitures.view.SavedDesignsPanel; // Assume we'll create this next
 
 import javax.swing.*;
+import java.util.List;
 
 public class Main {
     private static JFrame frame;
     private static DatabaseManager dbManager;
     private static FurnitureFactory furnitureFactory;
-
 
     public static void main(String[] args) {
         // Initialize the database and furniture factory
@@ -67,7 +69,7 @@ public class Main {
                 dbManager,
                 furnitureFactory,
                 Main::showLoginPanel,
-                () -> System.out.println("Show saved designs clicked (to be implemented in Day 7)"),
+                () -> showSavedDesignsPanel(user),
                 () -> showDesignPanel(user)
         );
         frame.add(dashboardPanel);
@@ -79,6 +81,21 @@ public class Main {
         frame.getContentPane().removeAll();
         DesignPanel designPanel = new DesignPanel(user, dbManager, furnitureFactory, () -> showDashboardPanel(user));
         frame.add(designPanel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private static void showSavedDesignsPanel(User user) {
+        frame.getContentPane().removeAll();
+        try {
+            List<Design> designs = dbManager.readDesigns(user.getId());
+            SavedDesignsPanel savedDesignsPanel = new SavedDesignsPanel(user, designs, dbManager, furnitureFactory,
+                    () -> showDashboardPanel(user));
+            frame.add(savedDesignsPanel);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(frame, "Error loading saved designs: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            showDashboardPanel(user); // Fallback to dashboard on error
+        }
         frame.revalidate();
         frame.repaint();
     }
