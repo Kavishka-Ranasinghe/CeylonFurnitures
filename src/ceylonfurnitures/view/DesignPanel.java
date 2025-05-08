@@ -728,22 +728,21 @@ public class DesignPanel extends JPanel {
     }
 
     private Rectangle2D getFurnitureBounds3D(Furniture furniture) {
-        float roomWidth = room.getWidth() / MM_TO_OPENGL_SCALE;
-        float roomDepth = room.getDepth() / MM_TO_OPENGL_SCALE;
-
-        float x = (furniture.getX() / MM_TO_OPENGL_SCALE);
-        float z = (furniture.getY() / MM_TO_OPENGL_SCALE);
-        float width = (furniture.getWidth() / MM_TO_OPENGL_SCALE);
-        float depth = (furniture.getHeight() / MM_TO_OPENGL_SCALE);
+        float x = furniture.getX() / MM_TO_OPENGL_SCALE;
+        float z = furniture.getY() / MM_TO_OPENGL_SCALE;
+        float width = furniture.getWidth() / MM_TO_OPENGL_SCALE;
+        float depth = furniture.getHeight() / MM_TO_OPENGL_SCALE;
         float rotation = furniture.getRotation();
 
+        // Calculate the rotated bounding box with position adjustment like in 2D
         double rad = Math.toRadians(rotation);
-        double sin = Math.sin(rad);
-        double cos = Math.cos(rad);
-        double newWidth = Math.abs(width * cos) + Math.abs(depth * sin);
-        double newDepth = Math.abs(width * sin) + Math.abs(depth * cos);
-        double newX = x;
-        double newZ = z;
+        double sin = Math.abs(Math.sin(rad));
+        double cos = Math.abs(Math.cos(rad));
+        double newWidth = width * cos + depth * sin;
+        double newDepth = width * sin + depth * cos;
+        // Adjust the top-left corner to account for rotation, similar to getRotatedBounds
+        double newX = x + (width - newWidth) / 2;
+        double newZ = z + (depth - newDepth) / 2;
 
         return new Rectangle2D.Double(newX, newZ, newWidth, newDepth);
     }
