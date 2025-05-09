@@ -374,10 +374,23 @@ public class DesignPanel extends JPanel {
                     selectedFurniture = null;
                     Point3D worldPoint = unproject(lastX, lastY);
                     if (worldPoint != null) {
+                        float roomWidth = room.getWidth() / MM_TO_OPENGL_SCALE;
+                        float roomDepth = room.getDepth() / MM_TO_OPENGL_SCALE;
+
+                        // Adjust world coordinates to account for the room's translation
+                        float adjustedX = (float) worldPoint.x + (roomWidth / 2);
+                        float adjustedZ = (float) worldPoint.z + (roomDepth / 2);
+
+                        System.out.println("Click world coordinates: x=" + adjustedX + ", z=" + adjustedZ);
+
                         for (Furniture furniture : placedFurniture) {
                             Rectangle2D bounds = getFurnitureBounds3D(furniture);
-                            if (bounds.contains(worldPoint.x, worldPoint.z)) {
+                            System.out.println("Furniture " + furniture.getDisplayName() + " bounds: x=" + bounds.getX() + ", y=" + bounds.getY() +
+                                    ", width=" + bounds.getWidth() + ", height=" + bounds.getHeight());
+
+                            if (bounds.contains(adjustedX, adjustedZ)) {
                                 selectedFurniture = furniture;
+                                System.out.println("Selected furniture: " + furniture.getDisplayName());
                                 if (selectedFurniture != null) {
                                     widthField.setText(String.valueOf(selectedFurniture.getWidth()));
                                     heightField.setText(String.valueOf(selectedFurniture.getHeight()));
@@ -386,6 +399,8 @@ public class DesignPanel extends JPanel {
                                 break;
                             }
                         }
+                    } else {
+                        System.out.println("Unproject failed to return valid coordinates.");
                     }
                     drawingPanel3D.repaint();
                 }
@@ -398,6 +413,8 @@ public class DesignPanel extends JPanel {
         });
 
         drawingPanel3D.addMouseMotionListener(new MouseMotionAdapter() {
+            private Point3D initialWorldPoint;
+
             @Override
             public void mouseDragged(MouseEvent e) {
                 int dx = e.getX() - lastX;
@@ -410,20 +427,25 @@ public class DesignPanel extends JPanel {
                     if (cameraAngleY < -90) cameraAngleY = -90;
                 } else if (selectedFurniture != null) {
                     Point3D newWorldPoint = unproject(e.getX(), e.getY());
-                    if (newWorldPoint != null) {
-                        float newX = (float) newWorldPoint.x;
-                        float newZ = (float) newWorldPoint.z;
-
+                    if (newWorldPoint != null && initialWorldPoint != null) {
                         float roomWidth = room.getWidth() / MM_TO_OPENGL_SCALE;
                         float roomDepth = room.getDepth() / MM_TO_OPENGL_SCALE;
 
-                        int newXPixels = (int) (newX * MM_TO_OPENGL_SCALE);
-                        int newYPixels = (int) (newZ * MM_TO_OPENGL_SCALE);
+                        float adjustedNewX = (float) newWorldPoint.x + (roomWidth / 2);
+                        float adjustedNewZ = (float) newWorldPoint.z + (roomDepth / 2);
+                        float adjustedInitialX = (float) initialWorldPoint.x + (roomWidth / 2);
+                        float adjustedInitialZ = (float) initialWorldPoint.z + (roomDepth / 2);
+
+                        float deltaX = adjustedNewX - adjustedInitialX;
+                        float deltaZ = adjustedNewZ - adjustedInitialZ;
+
+                        float newXPixels = selectedFurniture.getX() + (int) (deltaX * MM_TO_OPENGL_SCALE);
+                        float newYPixels = selectedFurniture.getY() + (int) (deltaZ * MM_TO_OPENGL_SCALE);
 
                         int roomWidthPixels = room.getWidth();
                         int roomDepthPixels = room.getDepth();
 
-                        Rectangle2D newBounds = getRotatedBounds(newXPixels, newYPixels,
+                        Rectangle2D newBounds = getRotatedBounds((int) newXPixels, (int) newYPixels,
                                 selectedFurniture.getWidth(), selectedFurniture.getHeight(), selectedFurniture.getRotation());
 
                         if (newXPixels < 0) newXPixels = 0;
@@ -436,17 +458,22 @@ public class DesignPanel extends JPanel {
                         boolean overlap = false;
                         for (Furniture other : placedFurniture) {
                             if (other == selectedFurniture) continue;
-                            Rectangle2D otherBounds = getRotatedBounds(other);
+                            Rectangle2D otherBounds = getRotatedBounds(other.getX(), other.getY(),
+                                    other.getWidth(), other.getHeight(), other.getRotation());
                             if (newBounds.intersects(otherBounds)) {
                                 overlap = true;
                                 break;
                             }
                         }
 
+                        System.out.println("New world coordinates: x=" + newXPixels + ", z=" + newYPixels);
+
                         if (!overlap) {
-                            selectedFurniture.setX(newXPixels);
-                            selectedFurniture.setY(newYPixels);
+                            selectedFurniture.setX((int) newXPixels);
+                            selectedFurniture.setY((int) newYPixels);
                         }
+                    } else {
+                        System.out.println("Unproject failed during drag.");
                     }
                 } else {
                     float roomWidth = room.getWidth() / MM_TO_OPENGL_SCALE;
@@ -464,7 +491,17 @@ public class DesignPanel extends JPanel {
 
                 lastX = e.getX();
                 lastY = e.getY();
+                if (selectedFurniture != null) {
+                    initialWorldPoint = unproject(lastX, lastY); // Update initial point during drag
+                }
                 drawingPanel3D.repaint();
+            }
+
+            public void mousePressed(MouseEvent e) {
+                super.mouseDragged(e);
+                if (selectedFurniture != null) {
+                    initialWorldPoint = unproject(e.getX(), e.getY()); // Set initial point on press
+                }
             }
         });
 
@@ -822,18 +859,57 @@ public class DesignPanel extends JPanel {
 
         depth.rewind();
         float depthValue = depth.get();
+        System.out.println("Depth value: " + depthValue);
 
-        glu.gluUnProject(mouseX, y, 0.0, modelview, 0, projection, 0, viewport, 0, nearPos, 0);
-        glu.gluUnProject(mouseX, y, 1.0, modelview, 0, projection, 0, viewport, 0, farPos, 0);
+        // Handle invalid depth (e.g., 1.0f indicating no object or 0.0f)
+        if (depthValue == 1.0f || depthValue <= 0.0f || depthValue > 1.0f) {
+            // Fallback: Try to intersect with the floor plane (y=0)
+            for (float z = 0.0f; z <= 1.0f; z += 0.1f) {
+                glu.gluUnProject(mouseX, y, z, modelview, 0, projection, 0, viewport, 0, nearPos, 0);
+                if (nearPos[1] >= 0 && nearPos[1] <= 0.1) { // Close to floor level
+                    return new Point3D(nearPos[0], 0, nearPos[2]);
+                }
+            }
+            System.out.println("Fallback unproject failed, using camera ray.");
+        } else {
+            glu.gluUnProject(mouseX, y, depthValue, modelview, 0, projection, 0, viewport, 0, nearPos, 0);
+            glu.gluUnProject(mouseX, y, 1.0, modelview, 0, projection, 0, viewport, 0, farPos, 0);
+        }
+
+        System.out.println("Near pos: " + nearPos[0] + ", " + nearPos[1] + ", " + nearPos[2]);
+        System.out.println("Far pos: " + farPos[0] + ", " + farPos[1] + ", " + farPos[2]);
 
         double dirX = farPos[0] - nearPos[0];
         double dirY = farPos[1] - nearPos[1];
         double dirZ = farPos[2] - nearPos[2];
 
-        if (dirY == 0) return null;
+        System.out.println("Direction vector: " + dirX + ", " + dirY + ", " + dirZ);
+
+        if (dirY == 0) {
+            System.out.println("Direction Y is zero, using camera fallback.");
+            // Fallback: Use camera forward vector (approximate based on angles)
+            double camDirX = -Math.sin(Math.toRadians(cameraAngleX));
+            double camDirZ = -Math.cos(Math.toRadians(cameraAngleX)) * Math.cos(Math.toRadians(cameraAngleY));
+            double camDirY = -Math.sin(Math.toRadians(cameraAngleY));
+            dirX = camDirX;
+            dirY = camDirY;
+            dirZ = camDirZ;
+            if (camDirY == 0) {
+                System.out.println("Camera direction Y is zero, forcing small Y.");
+                dirY = 0.001; // Force a small Y direction to avoid division by zero
+            }
+        }
+
+        if (dirY == 0) {
+            System.out.println("Direction Y is still zero, unproject failed.");
+            return null;
+        }
 
         double t = -nearPos[1] / dirY;
-        if (t < 0) return null;
+        if (t < 0) {
+            System.out.println("Negative t value, unproject failed.");
+            return null;
+        }
 
         double x = nearPos[0] + t * dirX;
         double z = nearPos[2] + t * dirZ;
@@ -848,13 +924,14 @@ public class DesignPanel extends JPanel {
         float depth = furniture.getHeight() / MM_TO_OPENGL_SCALE;
         float rotation = furniture.getRotation();
 
+        // Adjust bounds to account for rotation
         double rad = Math.toRadians(rotation);
         double sin = Math.abs(Math.sin(rad));
         double cos = Math.abs(Math.cos(rad));
         double newWidth = width * cos + depth * sin;
         double newDepth = width * sin + depth * cos;
-        double newX = x + (width - newWidth) / 2;
-        double newZ = z + (depth - newDepth) / 2;
+        double newX = x - (newWidth - width) / 2; // Adjust for rotation offset
+        double newZ = z - (newDepth - depth) / 2;
 
         return new Rectangle2D.Double(newX, newZ, newWidth, newDepth);
     }
