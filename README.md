@@ -1,5 +1,14 @@
 # CeylonFurnitures– Java Swing Application
 
+## 📌 Group Members (Group 123)
+    - 10898626 - Pulihinga M Ranasinghe(Kavishka Ranasinghe)
+    - 10898464 - Gajanayake Gajanayake
+    - 10898446 - Kurukulasuriya M Dias
+    - 10898702 - Wickrama A Wickramaarachchi
+    - 10899708 - Sooriyanayaka Sooriyanayaka
+    - 10899655 - Narahenpitage Perera
+    
+
 ## 📌 Project Overview
 
 This is a desktop application developed using *Java Swing*, designed for in-store designers to assist customers in visualizing room layouts and furniture arrangements. The application supports 2D visualizations of rooms and furniture items, color and shading customization, and saving/loading of designs. It aims to enhance user experience in interior design consultation scenarios.
@@ -9,7 +18,7 @@ This is a desktop application developed using *Java Swing*, designed for in-stor
 - Designer login authentication
 - Room size, shape, and color configuration
 - 2D rendering of furniture and layout using Java custom graphics
-- Basic pseudo-3D visualization with shading effects
+- Basic 3D visualization with shading effects
 - Furniture placement and editing
 - Color and shade selection for individual or grouped items
 - Save and reload existing designs
