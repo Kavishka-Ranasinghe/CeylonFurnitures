@@ -59,7 +59,7 @@ public class DashboardPanel extends JPanel {
         appBar.setPreferredSize(new Dimension(0, 60));
         appBar.setBorder(new EmptyBorder(10, 20, 10, 20));
 
-        JLabel welcomeLabel = new JLabel("Welcome, " + user.getUsername());
+        JLabel welcomeLabel = new JLabel("Welcome To The Dashboard , " + user.getUsername());
         welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
         welcomeLabel.setForeground(Color.WHITE);
         appBar.add(welcomeLabel, BorderLayout.WEST);
