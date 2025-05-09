@@ -10,8 +10,12 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class DashboardPanel extends JPanel {
     private User user;
@@ -20,6 +24,12 @@ public class DashboardPanel extends JPanel {
     private Runnable onLogout;
     private Runnable onShowSavedDesigns;
     private Runnable onStartDesign;
+
+    // Slideshow variables
+    private JLabel slideshowLabel;
+    private List<ImageIcon> images;
+    private int currentImageIndex = 0;
+    private static final int SLIDESHOW_DELAY = 3000; // 3 seconds delay between slides
 
     public DashboardPanel(User user, DatabaseManager dbManager, FurnitureFactory furnitureFactory,
                           Runnable onLogout, Runnable onShowSavedDesigns, Runnable onStartDesign) {
@@ -60,7 +70,37 @@ public class DashboardPanel extends JPanel {
 
         add(appBar, BorderLayout.NORTH);
 
-        // Action Grid (Center)
+        // Slideshow Panel (Below App Bar)
+        JPanel slideshowPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gp = new GradientPaint(0, 0, new Color(135, 206, 235), 0, getHeight(), new Color(173, 216, 230));
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        slideshowPanel.setPreferredSize(new Dimension(300, 200)); // Height for slideshow
+        slideshowPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        slideshowLabel = new JLabel();
+        slideshowLabel.setHorizontalAlignment(JLabel.CENTER);
+        slideshowPanel.add(slideshowLabel, BorderLayout.CENTER);
+
+        // Load images from the "App_ss" folder
+        loadSlideshowImages();
+        if (!images.isEmpty()) {
+            slideshowLabel.setIcon(images.get(0)); // Set initial image
+            startSlideshow();
+        } else {
+            slideshowLabel.setText("No images found in App_ss folder.");
+        }
+
+        add(slideshowPanel, BorderLayout.CENTER);
+
+        // Action Grid (South)
         JPanel actionPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -76,7 +116,7 @@ public class DashboardPanel extends JPanel {
         actionPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // Create Design Button
-        JButton createDesignButton = createModernButton("Create Design",new Color(0, 123, 255), Color.WHITE);
+        JButton createDesignButton = createModernButton("Create Design", new Color(31, 117, 9), Color.WHITE);
         createDesignButton.addActionListener(e -> {
             System.out.println("Create Design button clicked");
             onStartDesign.run();
@@ -84,19 +124,17 @@ public class DashboardPanel extends JPanel {
         actionPanel.add(createDesignButton);
 
         // Saved Design Button
-        JButton savedDesignButton = createModernButton("Saved Design", new Color(0, 123, 255), Color.WHITE);
+        JButton savedDesignButton = createModernButton("Saved Design", new Color(31, 117, 9), Color.WHITE);
         savedDesignButton.addActionListener(e -> onShowSavedDesigns.run());
         actionPanel.add(savedDesignButton);
 
-
-
         // Profile Button
-        JButton profileButton = createModernButton("Profile", new Color(0, 123, 255), Color.WHITE);
+        JButton profileButton = createModernButton("Profile", new Color(31, 117, 9), Color.WHITE);
         profileButton.addActionListener(e -> showProfileDialog());
         actionPanel.add(profileButton);
 
         // About Us Button
-        JButton aboutUsButton = createModernButton("About Us", new Color(0, 123, 255), Color.WHITE);
+        JButton aboutUsButton = createModernButton("About Us", new Color(31, 117, 9), Color.WHITE);
         aboutUsButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(this,
                     "Ceylon Furnitures\n" +
@@ -108,7 +146,7 @@ public class DashboardPanel extends JPanel {
         });
         actionPanel.add(aboutUsButton);
 
-        add(new JScrollPane(actionPanel), BorderLayout.CENTER);
+        add(actionPanel, BorderLayout.SOUTH);
     }
 
     private JButton createModernButton(String text, Color bgColor, Color fgColor) {
@@ -133,7 +171,7 @@ public class DashboardPanel extends JPanel {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2d.setColor(button.getBackground());
-                g2d.fillRoundRect(0, 0, button.getWidth(), button.getHeight(), 15, 15);
+                g2d.fillRoundRect(0, 0, button.getWidth(), getHeight(), 15, 15);
                 super.paint(g, c);
             }
         });
@@ -275,5 +313,38 @@ public class DashboardPanel extends JPanel {
         profileDialog.pack();
         profileDialog.setLocationRelativeTo(this);
         profileDialog.setVisible(true);
+    }
+
+    private void loadSlideshowImages() {
+        images = new ArrayList<>();
+        // Updated path to the App_ss folder
+        File folder = new File("E:\\CODE EDITORS\\InteliJ\\CeylonFurnitures\\resources\\App_ss");
+        if (folder.exists() && folder.isDirectory()) {
+            File[] files = folder.listFiles((dir, name) -> name.endsWith(".jpg") || name.endsWith(".png"));
+            if (files != null) {
+                for (File file : files) {
+                    images.add(new ImageIcon(file.getAbsolutePath()));
+                }
+            }
+        }
+        if (images.isEmpty()) {
+            images.add(new ImageIcon("default_image.png")); // Fallback image if none found
+        }
+    }
+
+    private void startSlideshow() {
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                SwingUtilities.invokeLater(() -> {
+                    currentImageIndex = (currentImageIndex + 1) % images.size();
+                    ImageIcon icon = images.get(currentImageIndex);
+                    // Scale image to fit the slideshow panel while maintaining aspect ratio
+                    Image img = icon.getImage().getScaledInstance(slideshowLabel.getWidth(), slideshowLabel.getHeight(), Image.SCALE_SMOOTH);
+                    slideshowLabel.setIcon(new ImageIcon(img));
+                });
+            }
+        }, 0, SLIDESHOW_DELAY);
     }
 }

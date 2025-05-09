@@ -38,6 +38,8 @@ public class FurnitureFactory {
         furnitureTypes.add(new Furniture("sofa", "Sofa"));
         furnitureTypes.add(new Furniture("cupboard", "Cupboard"));
         furnitureTypes.add(new Furniture("lamp", "Lamp"));
+        furnitureTypes.add(new Furniture("bookshelf", "Bookshelf"));
+        furnitureTypes.add(new Furniture("tvstand", "TV Stand"));
 
         // Map furniture types to their 2D rendering classes
         furniture2DMap = new HashMap<>();
@@ -47,6 +49,8 @@ public class FurnitureFactory {
         furniture2DMap.put("sofa", new Sofa2D());
         furniture2DMap.put("cupboard", new Cupboard2D());
         furniture2DMap.put("lamp", new Lamp2D());
+        furniture2DMap.put("bookshelf", new Bookshelf2D());
+        furniture2DMap.put("tvstand", new TVstand2D());
 
         // Map furniture types to their 3D rendering classes
         furniture3DMap = new HashMap<>();
@@ -56,6 +60,8 @@ public class FurnitureFactory {
         furniture3DMap.put("sofa", new Sofa3D());
         furniture3DMap.put("cupboard", new Cupboard3D());
         furniture3DMap.put("lamp", new Lamp3D());
+        furniture3DMap.put("bookshelf", new Bookshelf3D());
+        furniture3DMap.put("tvstand", new TVstand3D());
     }
 
     public List<Furniture> getFurnitureTypes() {

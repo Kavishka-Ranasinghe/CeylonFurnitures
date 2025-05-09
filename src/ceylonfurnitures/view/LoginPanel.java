@@ -52,7 +52,7 @@ public class LoginPanel extends JPanel {
         gbc.insets = new Insets(17, 17, 17, 17); // Increased padding for a spacious feel
 
         // Title
-        JLabel titleLabel = new JLabel("Cyelon-Furnitures Login");
+        JLabel titleLabel = new JLabel("Ceylon-Furnitures Login");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titleLabel.setForeground(new Color(33, 37, 41)); // Dark gray text
         gbc.gridx = 0;
