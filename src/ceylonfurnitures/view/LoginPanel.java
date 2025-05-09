@@ -49,10 +49,10 @@ public class LoginPanel extends JPanel {
         ));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(15, 15, 15, 15); // Increased padding for a spacious feel
+        gbc.insets = new Insets(17, 17, 17, 17); // Increased padding for a spacious feel
 
         // Title
-        JLabel titleLabel = new JLabel("Login");
+        JLabel titleLabel = new JLabel("Cyelon-Furnitures Login");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titleLabel.setForeground(new Color(33, 37, 41)); // Dark gray text
         gbc.gridx = 0;
